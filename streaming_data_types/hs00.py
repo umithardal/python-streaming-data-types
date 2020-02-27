@@ -79,7 +79,6 @@ def deserialise_hs00(buf):
     else:
         errors = []
 
-
     hist = {
         "source": event_hist.Source().decode("utf-8") if event_hist.Source() else "",
         "timestamp": event_hist.Timestamp(),
@@ -192,7 +191,9 @@ def serialise_hs00(histogram):
         EventHistogram.EventHistogramAddErrors(builder, pos_errors)
         EventHistogram.EventHistogramAddErrorsType(builder, Array.ArrayDouble)
     if "last_metadata_timestamp" in histogram:
-        EventHistogram.EventHistogramAddLastMetadataTimestamp(builder, histogram["last_metadata_timestamp"])
+        EventHistogram.EventHistogramAddLastMetadataTimestamp(
+            builder, histogram["last_metadata_timestamp"]
+        )
     hist = EventHistogram.EventHistogramEnd(builder)
     builder.Finish(hist)
 
