@@ -6,19 +6,10 @@ import streaming_data_types.fbschemas.hs00.ArrayDouble as ArrayDouble
 import streaming_data_types.fbschemas.hs00.DimensionMetaData as DimensionMetaData
 import streaming_data_types.fbschemas.hs00.EventHistogram as EventHistogram
 from streaming_data_types.fbschemas.hs00.Array import Array
+from streaming_data_types.utils import get_schema
 
 
 FILE_IDENTIFIER = b"hs00"
-
-
-def get_schema(buf):
-    """
-    Extract the schema code embedded in the buffer
-
-    :param buf: The raw buffer of the FlatBuffers message.
-    :return: The schema name
-    """
-    return buf[4:8].decode("utf-8")
 
 
 def deserialise_hs00(buf):
@@ -29,8 +20,10 @@ def deserialise_hs00(buf):
     :return: dict of histogram information
     """
     # Check schema is correct
-    if get_schema(buf) != "hs00":
-        raise RuntimeError(f"Incorrect schema: expected hs00 but got {get_schema(buf)}")
+    if get_schema(buf) != FILE_IDENTIFIER.decode():
+        raise RuntimeError(
+            f"Incorrect schema: expected {FILE_IDENTIFIER} but got {get_schema(buf)}"
+        )
 
     event_hist = EventHistogram.EventHistogram.GetRootAsEventHistogram(buf, 0)
 

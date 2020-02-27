@@ -30,9 +30,10 @@ class TestSerialisationHs00:
             "errors": np.array([5, 4, 3, 2, 1]),
             "info": "info_string",
         }
-        buf = serialise_hs00(original_hist)
 
+        buf = serialise_hs00(original_hist)
         hist = deserialise_hs00(buf)
+
         assert hist["source"] == original_hist["source"]
         assert hist["timestamp"] == original_hist["timestamp"]
         assert hist["shape"] == original_hist["current_shape"]
