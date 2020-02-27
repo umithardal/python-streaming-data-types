@@ -1,24 +1,14 @@
 from functools import reduce
 import operator
 import flatbuffers
-import numpy as np
 import streaming_data_types.fbschemas.hs00.ArrayDouble as ArrayDouble
 import streaming_data_types.fbschemas.hs00.DimensionMetaData as DimensionMetaData
 import streaming_data_types.fbschemas.hs00.EventHistogram as EventHistogram
 from streaming_data_types.fbschemas.hs00.Array import Array
+from streaming_data_types.utils import get_schema
 
 
 FILE_IDENTIFIER = b"hs00"
-
-
-def get_schema(buf):
-    """
-    Extract the schema code embedded in the buffer
-
-    :param buf: The raw buffer of the FlatBuffers message.
-    :return: The schema name
-    """
-    return buf[4:8].decode("utf-8")
 
 
 def deserialise_hs00(buf):
@@ -29,8 +19,10 @@ def deserialise_hs00(buf):
     :return: dict of histogram information
     """
     # Check schema is correct
-    if get_schema(buf) != "hs00":
-        raise RuntimeError(f"Incorrect schema: expected hs00 but got {get_schema(buf)}")
+    if get_schema(buf) != FILE_IDENTIFIER.decode():
+        raise RuntimeError(
+            f"Incorrect schema: expected {FILE_IDENTIFIER} but got {get_schema(buf)}"
+        )
 
     event_hist = EventHistogram.EventHistogram.GetRootAsEventHistogram(buf, 0)
 
@@ -43,16 +35,13 @@ def deserialise_hs00(buf):
         temp.Init(bins_fb.Bytes, bins_fb.Pos)
         bins = temp.ValueAsNumpy()
 
-        # Get type
-        if event_hist.DimMetadata(i).BinBoundariesType() == Array.ArrayDouble:
-            bin_type = np.float64
-        else:
-            raise TypeError("Type of the bin boundaries is incorrect")
+        # Check type
+        if event_hist.DimMetadata(i).BinBoundariesType() != Array.ArrayDouble:
+            raise TypeError("Type of the bin boundaries is incorrect, should be double")
 
         hist_info = {
             "length": event_hist.DimMetadata(i).Length(),
-            "edges": bins.tolist(),
-            "type": bin_type,
+            "bin_boundaries": bins.tolist(),
             "unit": event_hist.DimMetadata(i).Unit().decode("utf-8"),
             "label": event_hist.DimMetadata(i).Label().decode("utf-8"),
         }
@@ -82,8 +71,8 @@ def deserialise_hs00(buf):
     hist = {
         "source": event_hist.Source().decode("utf-8") if event_hist.Source() else "",
         "timestamp": event_hist.Timestamp(),
-        "shape": shape,
-        "dims": dims,
+        "current_shape": shape,
+        "dim_metadata": dims,
         "data": data,
         "errors": errors,
         "last_metadata_timestamp": metadata_timestamp,

@@ -3,6 +3,7 @@
 |name|description|verifiable|
 |----|-----------|----------|
 |hs00|Histogram schema|Y|
+|ns10|NICOS cache entry schema|Y|
 
 ## For developers
 
