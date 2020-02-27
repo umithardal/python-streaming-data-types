@@ -1,4 +1,5 @@
 import numpy as np
+import pytest
 from streaming_data_types.hs00 import serialise_hs00, deserialise_hs00
 
 
@@ -124,3 +125,25 @@ class TestSerialisationHs00:
         assert (
             hist["last_metadata_timestamp"] == original_hist["last_metadata_timestamp"]
         )
+
+    def test_if_buffer_has_wrong_id_then_throws(self):
+        original_hist = {
+            "timestamp": 123456,
+            "current_shape": [5],
+            "dim_metadata": [
+                {
+                    "length": 5,
+                    "unit": "m",
+                    "label": "some_label",
+                    "bin_boundaries": [0, 1, 2, 3, 4, 5],
+                }
+            ],
+            "data": np.array([1, 2, 3, 4, 5]),
+        }
+        buf = serialise_hs00(original_hist)
+
+        # Manually hack the id
+        buf[4:8] = b"1234"
+
+        with pytest.raises(RuntimeError):
+            deserialise_hs00(buf)
