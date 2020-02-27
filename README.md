@@ -26,3 +26,12 @@ To test the hooks run:
 pre-commit run --all-files
 ```
 This command can also be used to run the hooks manually.
+
+### Tox
+Tox allows the unit tests to be run against multiple versions of Python.
+See the tox.ini file for which versions are supported.
+From the top directory:
+```
+tox
+```
+

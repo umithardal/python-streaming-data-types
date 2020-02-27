@@ -160,7 +160,7 @@ def serialise_hs00(histogram):
 
     ArrayDouble.ArrayDoubleStartValueVector(builder, data_len)
     # FlatBuffers builds arrays backwards
-    for x in reversed(histogram["data"]):
+    for x in reversed(histogram["data"].flatten()):
         builder.PrependFloat64(x)
     data = builder.EndVector(data_len)
     ArrayDouble.ArrayDoubleStart(builder)
@@ -169,7 +169,7 @@ def serialise_hs00(histogram):
 
     if "errors" in histogram:
         ArrayDouble.ArrayDoubleStartValueVector(builder, data_len)
-        for x in reversed(histogram["errors"]):
+        for x in reversed(histogram["errors"].flatten()):
             builder.PrependFloat64(x)
         errors = builder.EndVector(data_len)
         ArrayDouble.ArrayDoubleStart(builder)

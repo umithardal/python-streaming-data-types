@@ -1,9 +1,14 @@
-# from .context import streaming_data_types  # NOQA
 import numpy as np
 from streaming_data_types.hs00 import serialise_hs00, deserialise_hs00
 
 
 class TestSerialisationHs00:
+    def _check_metadata_for_one_dimension(self, data, original_data):
+        assert data["edges"] == original_data["bin_boundaries"]
+        assert data["length"] == original_data["length"]
+        assert data["unit"] == original_data["unit"]
+        assert data["label"] == original_data["label"]
+
     def test_serialises_and_deserialises_hs00_message_correctly_for_full_1d_data(self):
         """
         Round-trip to check what we serialise is what we get back.
@@ -21,8 +26,8 @@ class TestSerialisationHs00:
                 }
             ],
             "last_metadata_timestamp": 123456,
-            "data": [1, 2, 3, 4, 5],
-            "errors": [5, 4, 3, 2, 1],
+            "data": np.array([1, 2, 3, 4, 5]),
+            "errors": np.array([5, 4, 3, 2, 1]),
             "info": "info_string",
         }
         buf = serialise_hs00(original_hist)
@@ -31,13 +36,9 @@ class TestSerialisationHs00:
         assert hist["source"] == original_hist["source"]
         assert hist["timestamp"] == original_hist["timestamp"]
         assert hist["shape"] == original_hist["current_shape"]
-        assert (
-            hist["dims"][0]["edges"]
-            == original_hist["dim_metadata"][0]["bin_boundaries"]
+        self._check_metadata_for_one_dimension(
+            hist["dims"][0], original_hist["dim_metadata"][0]
         )
-        assert hist["dims"][0]["length"] == original_hist["dim_metadata"][0]["length"]
-        assert hist["dims"][0]["unit"] == original_hist["dim_metadata"][0]["unit"]
-        assert hist["dims"][0]["label"] == original_hist["dim_metadata"][0]["label"]
         assert np.array_equal(hist["data"], original_hist["data"])
         assert np.array_equal(hist["errors"], original_hist["errors"])
         assert hist["info"] == original_hist["info"]
@@ -62,7 +63,7 @@ class TestSerialisationHs00:
                     "bin_boundaries": [0, 1, 2, 3, 4, 5],
                 }
             ],
-            "data": [1, 2, 3, 4, 5],
+            "data": np.array([1, 2, 3, 4, 5]),
         }
         buf = serialise_hs00(original_hist)
 
@@ -70,16 +71,55 @@ class TestSerialisationHs00:
         assert hist["source"] == ""
         assert hist["timestamp"] == original_hist["timestamp"]
         assert hist["shape"] == original_hist["current_shape"]
-        assert (
-            hist["dims"][0]["edges"]
-            == original_hist["dim_metadata"][0]["bin_boundaries"]
+        self._check_metadata_for_one_dimension(
+            hist["dims"][0], original_hist["dim_metadata"][0]
         )
-        assert hist["dims"][0]["length"] == original_hist["dim_metadata"][0]["length"]
-        assert hist["dims"][0]["unit"] == original_hist["dim_metadata"][0]["unit"]
-        assert hist["dims"][0]["label"] == original_hist["dim_metadata"][0]["label"]
         assert np.array_equal(hist["data"], original_hist["data"])
         assert len(hist["errors"]) == 0
         assert hist["info"] == ""
 
+    def test_serialises_and_deserialises_hs00_message_correctly_for_full_2d_data(self):
+        """
+        Round-trip to check what we serialise is what we get back.
+        """
+        original_hist = {
+            "source": "some_source",
+            "timestamp": 123456,
+            "current_shape": [2, 5],
+            "dim_metadata": [
+                {
+                    "length": 2,
+                    "unit": "b",
+                    "label": "y",
+                    "bin_boundaries": [10, 11, 12],
+                },
+                {
+                    "length": 5,
+                    "unit": "m",
+                    "label": "x",
+                    "bin_boundaries": [0, 1, 2, 3, 4, 5],
+                },
+            ],
+            "last_metadata_timestamp": 123456,
+            "data": np.array([[1, 2, 3, 4, 5], [6, 7, 8, 9, 10]]),
+            "errors": np.array([[5, 4, 3, 2, 1], [10, 9, 8, 7, 6]]),
+            "info": "info_string",
+        }
+        buf = serialise_hs00(original_hist)
 
-# TODO: test with non-required fields missing, M-D data
+        hist = deserialise_hs00(buf)
+        assert hist["source"] == original_hist["source"]
+        assert hist["timestamp"] == original_hist["timestamp"]
+        assert hist["shape"] == original_hist["current_shape"]
+        self._check_metadata_for_one_dimension(
+            hist["dims"][0], original_hist["dim_metadata"][0]
+        )
+        self._check_metadata_for_one_dimension(
+            hist["dims"][1], original_hist["dim_metadata"][1]
+        )
+        assert np.array_equal(hist["data"], original_hist["data"])
+        assert np.array_equal(hist["errors"], original_hist["errors"])
+        assert hist["info"] == original_hist["info"]
+        assert (
+            hist["last_metadata_timestamp"] == original_hist["last_metadata_timestamp"]
+        )
