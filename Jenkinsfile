@@ -44,11 +44,13 @@ builders = pipeline_builder.createBuilders { container ->
       /home/jenkins/miniconda/bin/conda init bash
       /home/jenkins/miniconda/bin/conda create -n env python=${python_version}
       echo "/home/nicos/miniconda/bin/conda activate env" >> ~/.bashrc
+      export PYTHONPATH=
     """
   } // stage
 
   pipeline_builder.stage("${container.key}: Dependencies") {
     container.sh """
+      export PATH=/home/jenkins/miniconda/envs/env/bin:$PATH
       python --version
       python -m pip install --user -r ${project}/requirements.txt
       python -m pip install --user -r ${project}/requirements-dev.txt
