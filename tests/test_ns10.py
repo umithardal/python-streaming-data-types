@@ -9,17 +9,17 @@ class TestSerialisationNs10:
         """
         original_entry = {
             "key": "some_key",
-            "time": 123456,
+            "time_stamp": 123456,
             "ttl": 567890,
             "expired": True,
             "value": "some_value",
         }
 
-        buf = serialise_ns10(original_entry)
+        buf = serialise_ns10(**original_entry)
         entry = deserialise_ns10(buf)
 
         assert entry["key"] == original_entry["key"]
-        assert entry["time"] == original_entry["time"]
+        assert entry["time_stamp"] == original_entry["time_stamp"]
         assert entry["ttl"] == original_entry["ttl"]
         assert entry["expired"] == original_entry["expired"]
         assert entry["value"] == original_entry["value"]
@@ -27,12 +27,12 @@ class TestSerialisationNs10:
     def test_if_buffer_has_wrong_id_then_throws(self):
         original_entry = {
             "key": "some_key",
-            "time": 123456,
+            "time_stamp": 123456,
             "ttl": 567890,
             "expired": True,
             "value": "some_value",
         }
-        buf = serialise_ns10(original_entry)
+        buf = serialise_ns10(**original_entry)
 
         # Manually hack the id
         buf[4:8] = b"1234"

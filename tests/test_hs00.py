@@ -5,7 +5,7 @@ from streaming_data_types.hs00 import serialise_hs00, deserialise_hs00
 
 class TestSerialisationHs00:
     def _check_metadata_for_one_dimension(self, data, original_data):
-        assert data["bin_boundaries"] == original_data["bin_boundaries"]
+        assert np.array_equal(data["bin_boundaries"], original_data["bin_boundaries"])
         assert data["length"] == original_data["length"]
         assert data["unit"] == original_data["unit"]
         assert data["label"] == original_data["label"]
@@ -93,7 +93,7 @@ class TestSerialisationHs00:
                     "length": 2,
                     "unit": "b",
                     "label": "y",
-                    "bin_boundaries": [10, 11, 12],
+                    "bin_boundaries": np.array([10, 11, 12]),
                 },
                 {
                     "length": 5,

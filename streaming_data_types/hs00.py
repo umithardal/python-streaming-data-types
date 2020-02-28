@@ -41,7 +41,7 @@ def deserialise_hs00(buf):
 
         hist_info = {
             "length": event_hist.DimMetadata(i).Length(),
-            "bin_boundaries": bins.tolist(),
+            "bin_boundaries": bins,
             "unit": event_hist.DimMetadata(i).Unit().decode("utf-8"),
             "label": event_hist.DimMetadata(i).Label().decode("utf-8"),
         }

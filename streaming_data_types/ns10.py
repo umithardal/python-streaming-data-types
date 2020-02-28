@@ -6,15 +6,13 @@ from streaming_data_types.utils import get_schema
 FILE_IDENTIFIER = b"ns10"
 
 
-def serialise_ns10(cache_entry):
+def serialise_ns10(
+    key: str, value: str, time_stamp: float = 0, ttl: float = 0, expired: bool = False
+):
     builder = flatbuffers.Builder(128)
 
-    value = builder.CreateString(cache_entry["value"])
-    key = builder.CreateString(cache_entry["key"])
-
-    ttl = cache_entry["ttl"] if "ttl" in cache_entry else False
-    time_stamp = cache_entry["time"] if "time" in cache_entry else 0
-    expired = cache_entry["expired"] if "expired" in cache_entry else False
+    value = builder.CreateString(value)
+    key = builder.CreateString(key)
 
     CacheEntry.CacheEntryStart(builder)
     CacheEntry.CacheEntryAddValue(builder, value)
@@ -49,7 +47,7 @@ def deserialise_ns10(buf):
 
     cache_entry = {
         "key": key.decode("utf-8"),
-        "time": time_stamp,
+        "time_stamp": time_stamp,
         "ttl": ttl,
         "expired": expired,
         "value": value.decode("utf-8"),

@@ -1,5 +1,2 @@
-flake8
 flatbuffers
 numpy
-pre-commit
-pytest
