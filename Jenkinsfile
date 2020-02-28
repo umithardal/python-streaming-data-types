@@ -41,6 +41,7 @@ builders = pipeline_builder.createBuilders { container ->
     container.sh """
       curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh --output miniconda.sh
       sh miniconda.sh -b -p /home/jenkins/miniconda
+      /home/jenkins/miniconda/bin/conda update -n base -c defaults conda -y
       /home/jenkins/miniconda/bin/conda init bash
       export PYTHONPATH=
     """
