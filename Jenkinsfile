@@ -60,6 +60,7 @@ builders = pipeline_builder.createBuilders { container ->
   pipeline_builder.stage("${container.key}: Test") {
     def test_output = "TestResults.xml"
     container.sh """
+      export PATH=/home/jenkins/miniconda/envs/env/bin:$PATH
       cd ${project}
       python -m tox -- --junitxml=${test_output}
     """
