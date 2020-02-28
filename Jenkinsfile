@@ -37,13 +37,18 @@ builders = pipeline_builder.createBuilders { container ->
     container.copyTo(pipeline_builder.project, pipeline_builder.project)
   }  // stage
 
-  pipeline_builder.stage("${container.key}: Dependencies") {
+  pipeline_builder.stage("${container.key}: Conda") {
     container.sh """
       curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh --output miniconda.sh
-      sh miniconda.sh -b -p miniconda
-      miniconda/bin/conda init bash
-      miniconda/bin/conda create -n env python=${python_version}
-      miniconda/bin/conda activate env
+      sh miniconda.sh -b -p /home/jenkins/miniconda
+      /home/jenkins/miniconda/bin/conda init bash
+      /home/jenkins/miniconda/bin/conda create -n env python=${python_version}
+      echo "/home/nicos/miniconda/bin/conda activate env" >> ~/.bashrc
+    """
+  } // stage
+
+  pipeline_builder.stage("${container.key}: Dependencies") {
+    container.sh """
       python --version
       python -m pip install --user -r ${project}/requirements.txt
       python -m pip install --user -r ${project}/requirements-dev.txt
