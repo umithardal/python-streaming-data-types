@@ -41,6 +41,7 @@ builders = pipeline_builder.createBuilders { container ->
     container.sh """
       curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh --output miniconda.sh
       sh miniconda.sh -b -p miniconda
+      miniconda/bin/conda init bash
       miniconda/bin/conda create -n env python=${python_version}
       miniconda/bin/conda activate env
       python --version
