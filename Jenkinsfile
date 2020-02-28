@@ -39,8 +39,7 @@ builders = pipeline_builder.createBuilders { container ->
 
   pipeline_builder.stage("${container.key}: Dependencies") {
     container.sh """
-      yum install -yq wget
-      wget -O miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+      curl https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh --output miniconda.sh
       sh miniconda.sh -b -p miniconda
       miniconda/bin/conda create -n env python=${python_version}
       miniconda/bin/conda activate env
