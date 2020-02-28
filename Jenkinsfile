@@ -4,7 +4,7 @@ import ecdcpipeline.PipelineBuilder
 
 project = "python-streaming-data-types"
 
-python = "python3.6"
+python_version = "3.7"
 
 container_build_nodes = [
   'centos7-release': ContainerBuildNode.getDefaultContainerBuildNode('centos7'),
@@ -39,8 +39,13 @@ builders = pipeline_builder.createBuilders { container ->
 
   pipeline_builder.stage("${container.key}: Dependencies") {
     container.sh """
-      pip install --user -r ${project}/requirements.txt
-      pip install --user -r ${project}/requirements-dev.txt
+      wget -O miniconda.sh https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh
+      sh miniconda.sh -b -p miniconda
+      miniconda/bin/conda create -n env python=${python_version}
+      miniconda/bin/conda activate env
+      python --version
+      python -m pip install --user -r ${project}/requirements.txt
+      python -m pip install --user -r ${project}/requirements-dev.txt
     """
   } // stage
 
@@ -48,7 +53,7 @@ builders = pipeline_builder.createBuilders { container ->
     def test_output = "TestResults.xml"
     container.sh """
       cd ${project}
-      ${python} -m tox -- --junitxml=${test_output}
+      python -m tox -- --junitxml=${test_output}
     """
     container.copyFrom("${project}/${test_output}", ".")
     xunit thresholds: [failed(unstableThreshold: '0')], tools: [JUnit(deleteOutputFiles: true, pattern: '*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
