@@ -38,7 +38,6 @@ builders = pipeline_builder.createBuilders { container ->
   }  // stage
 
   pipeline_builder.stage("${container.key}: Dependencies") {
-    def conan_remote = "ess-dmsc-local"
     container.sh """
       pip install --user -r ${project}/requirements.txt
       pip install --user -r ${project}/requirements-dev.txt
@@ -49,7 +48,7 @@ builders = pipeline_builder.createBuilders { container ->
     def test_output = "TestResults.xml"
     container.sh """
       cd ${project}
-      tox -- --junitxml=${test_output}
+      ${python} -m tox -- --junitxml=${test_output}
     """
     container.copyFrom("${project}/${test_output}", ".")
     xunit thresholds: [failed(unstableThreshold: '0')], tools: [JUnit(deleteOutputFiles: true, pattern: '*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
