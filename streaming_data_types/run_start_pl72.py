@@ -50,5 +50,5 @@ def serialise_pl72(
 
     # Generate the output and replace the file_identifier
     buff = builder.Output()
-    buff[4:8] = b"run_start_pl72"
+    buff[4:8] = b"pl72"
     return bytes(buff)
