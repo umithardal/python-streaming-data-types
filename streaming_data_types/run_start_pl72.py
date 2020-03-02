@@ -2,7 +2,7 @@ import time
 from typing import Optional
 import flatbuffers
 from streaming_data_types.fbschemas.run_start_pl72 import RunStart
-from streaming_data_types.utils import get_schema
+from streaming_data_types.utils import check_schema_identifier
 
 
 FILE_IDENTIFIER = b"pl72"
@@ -59,12 +59,7 @@ def serialise_pl72(
 
 
 def deserialise_pl72(buffer):
-    # Check schema is correct
-    if get_schema(buffer) != FILE_IDENTIFIER.decode():
-        raise RuntimeError(
-            f"Incorrect schema: expected {FILE_IDENTIFIER} but got "
-            f"{get_schema(buffer)}"
-        )
+    check_schema_identifier(buffer, FILE_IDENTIFIER)
 
     # run_start = RunStart.RunStart.GetRootAsRunStart(buffer, 0)
     # service_id = run_start.ServiceId() if run_start.ServiceId() else b""

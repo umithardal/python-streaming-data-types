@@ -5,7 +5,7 @@ import streaming_data_types.fbschemas.histogram_hs00.ArrayDouble as ArrayDouble
 import streaming_data_types.fbschemas.histogram_hs00.DimensionMetaData as DimensionMetaData
 import streaming_data_types.fbschemas.histogram_hs00.EventHistogram as EventHistogram
 from streaming_data_types.fbschemas.histogram_hs00.Array import Array
-from streaming_data_types.utils import get_schema
+from streaming_data_types.utils import check_schema_identifier
 
 
 FILE_IDENTIFIER = b"hs00"
@@ -18,11 +18,7 @@ def deserialise_hs00(buf):
     :param buf:
     :return: dict of histogram information
     """
-    # Check schema is correct
-    if get_schema(buf) != FILE_IDENTIFIER.decode():
-        raise RuntimeError(
-            f"Incorrect schema: expected {FILE_IDENTIFIER} but got {get_schema(buf)}"
-        )
+    check_schema_identifier(buf, FILE_IDENTIFIER)
 
     event_hist = EventHistogram.EventHistogram.GetRootAsEventHistogram(buf, 0)
 
