@@ -2,6 +2,10 @@ import time
 from typing import Optional
 import flatbuffers
 from streaming_data_types.fbschemas.run_start_pl72 import RunStart
+from streaming_data_types.utils import get_schema
+
+
+FILE_IDENTIFIER = b"pl72"
 
 
 def serialise_pl72(
@@ -49,6 +53,22 @@ def serialise_pl72(
     builder.Finish(run_start_message)
 
     # Generate the output and replace the file_identifier
-    buff = builder.Output()
-    buff[4:8] = b"pl72"
-    return bytes(buff)
+    buffer = builder.Output()
+    buffer[4:8] = FILE_IDENTIFIER
+    return bytes(buffer)
+
+
+def deserialise_pl72(buffer):
+    # Check schema is correct
+    if get_schema(buffer) != FILE_IDENTIFIER.decode():
+        raise RuntimeError(
+            f"Incorrect schema: expected {FILE_IDENTIFIER} but got "
+            f"{get_schema(buffer)}"
+        )
+
+    # run_start = RunStart.RunStart.GetRootAsRunStart(buffer, 0)
+    # service_id = run_start.ServiceId() if run_start.ServiceId() else b""
+    # broker = run_start.Broker() if run_start.Broker() else b""
+    # job_id =
+
+    # TODO: return a namedTuple like ns10?

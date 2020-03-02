@@ -18,11 +18,11 @@ class TestSerialisationNs10:
         buf = serialise_ns10(**original_entry)
         entry = deserialise_ns10(buf)
 
-        assert entry["key"] == original_entry["key"]
-        assert entry["time_stamp"] == original_entry["time_stamp"]
-        assert entry["ttl"] == original_entry["ttl"]
-        assert entry["expired"] == original_entry["expired"]
-        assert entry["value"] == original_entry["value"]
+        assert entry.key == original_entry["key"]
+        assert entry.time_stamp == original_entry["time_stamp"]
+        assert entry.ttl == original_entry["ttl"]
+        assert entry.expired == original_entry["expired"]
+        assert entry.value == original_entry["value"]
 
     def test_if_buffer_has_wrong_id_then_throws(self):
         original_entry = {
