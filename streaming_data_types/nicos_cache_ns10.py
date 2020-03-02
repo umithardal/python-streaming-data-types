@@ -1,5 +1,5 @@
 import flatbuffers
-from streaming_data_types.fbschemas.ns10 import CacheEntry
+from streaming_data_types.fbschemas.nicos_cache_ns10 import CacheEntry
 from streaming_data_types.utils import get_schema
 
 
@@ -25,7 +25,7 @@ def serialise_ns10(
 
     # Generate the output and replace the file_identifier
     buff = builder.Output()
-    buff[4:8] = b"ns10"
+    buff[4:8] = FILE_IDENTIFIER
 
     return buff
 

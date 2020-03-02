@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from streaming_data_types.hs00 import serialise_hs00, deserialise_hs00
+from streaming_data_types.histogram_hs00 import serialise_hs00, deserialise_hs00
 
 
 class TestSerialisationHs00:

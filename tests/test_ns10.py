@@ -1,5 +1,5 @@
 import pytest
-from streaming_data_types.ns10 import serialise_ns10, deserialise_ns10
+from streaming_data_types.nicos_cache_ns10 import serialise_ns10, deserialise_ns10
 
 
 class TestSerialisationNs10:

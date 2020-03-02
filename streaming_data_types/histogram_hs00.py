@@ -1,10 +1,10 @@
 from functools import reduce
 import operator
 import flatbuffers
-import streaming_data_types.fbschemas.hs00.ArrayDouble as ArrayDouble
-import streaming_data_types.fbschemas.hs00.DimensionMetaData as DimensionMetaData
-import streaming_data_types.fbschemas.hs00.EventHistogram as EventHistogram
-from streaming_data_types.fbschemas.hs00.Array import Array
+import streaming_data_types.fbschemas.histogram_hs00.ArrayDouble as ArrayDouble
+import streaming_data_types.fbschemas.histogram_hs00.DimensionMetaData as DimensionMetaData
+import streaming_data_types.fbschemas.histogram_hs00.EventHistogram as EventHistogram
+from streaming_data_types.fbschemas.histogram_hs00.Array import Array
 from streaming_data_types.utils import get_schema
 
 
@@ -13,7 +13,7 @@ FILE_IDENTIFIER = b"hs00"
 
 def deserialise_hs00(buf):
     """
-    Convert flatbuffer into a histogram.
+    Deserialise flatbuffer hs10 into a histogram.
 
     :param buf:
     :return: dict of histogram information
