@@ -4,8 +4,6 @@ import ecdcpipeline.PipelineBuilder
 
 project = "python-streaming-data-types"
 
-python_version = "3.8"
-
 container_build_nodes = [
   'centos7-release': ContainerBuildNode.getDefaultContainerBuildNode('centos7'),
 ]
