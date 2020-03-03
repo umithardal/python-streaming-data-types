@@ -23,7 +23,6 @@ properties([[
   ]
 ]]);
 
-
 pipeline_builder = new PipelineBuilder(this, container_build_nodes)
 pipeline_builder.activateEmailFailureNotifications()
 
