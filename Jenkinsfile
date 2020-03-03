@@ -39,9 +39,9 @@ builders = pipeline_builder.createBuilders { container ->
     container.sh """
       export PYTHONPATH=
       export PATH=/opt/miniconda/bin:$PATH
-      python --version
-      python -m pip install --user -r ${project}/requirements.txt
-      python -m pip install --user -r ${project}/requirements-dev.txt
+      /opt/miniconda/bin/python --version
+      /opt/miniconda/bin/python -m pip install --user -r ${project}/requirements.txt
+      /opt/miniconda/bin/python -m pip install --user -r ${project}/requirements-dev.txt
     """
   } // stage
 
@@ -51,7 +51,7 @@ builders = pipeline_builder.createBuilders { container ->
       export PYTHONPATH=
       export PATH=/home/jenkins/miniconda/bin:$PATH
       cd ${project}
-      python -m tox -- --junitxml=${test_output}
+      /opt/miniconda/bin/python -m tox -- --junitxml=${test_output}
     """
     container.copyFrom("${project}/${test_output}", ".")
     xunit thresholds: [failed(unstableThreshold: '0')], tools: [JUnit(deleteOutputFiles: true, pattern: '*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
