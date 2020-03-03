@@ -50,7 +50,7 @@ builders = pipeline_builder.createBuilders { container ->
     container.sh """
       /opt/miniconda/bin/conda init bash
       export PYTHONPATH=
-      export PATH=/home/jenkins/miniconda/bin:$PATH
+      export PATH=/opt/miniconda/bin:$PATH
       cd ${project}
       /opt/miniconda/bin/python -m tox -- --junitxml=${test_output}
     """
