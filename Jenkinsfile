@@ -39,7 +39,7 @@ builders = pipeline_builder.createBuilders { container ->
       /opt/miniconda/bin/conda init bash
       export PYTHONPATH=
       export PATH=/opt/miniconda/bin:$PATH
-      bin/python --version
+      python --version
       /opt/miniconda/bin/python -m pip install --user -r ${project}/requirements.txt
       /opt/miniconda/bin/python -m pip install --user -r ${project}/requirements-dev.txt
     """
