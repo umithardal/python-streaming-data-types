@@ -48,6 +48,7 @@ builders = pipeline_builder.createBuilders { container ->
   pipeline_builder.stage("${container.key}: Test") {
     def test_output = "TestResults.xml"
     container.sh """
+      /opt/miniconda/bin/conda init bash
       export PYTHONPATH=
       export PATH=/home/jenkins/miniconda/bin:$PATH
       cd ${project}
