@@ -40,19 +40,16 @@ builders = pipeline_builder.createBuilders { container ->
       export PYTHONPATH=
       export PATH=/opt/miniconda/bin:$PATH
       python --version
-      /opt/miniconda/bin/python -m pip install --user -r ${project}/requirements.txt
-      /opt/miniconda/bin/python -m pip install --user -r ${project}/requirements-dev.txt
+      python -m pip install --user -r ${project}/requirements.txt
+      python -m pip install --user -r ${project}/requirements-dev.txt
     """
   } // stage
 
   pipeline_builder.stage("${container.key}: Test") {
     def test_output = "TestResults.xml"
     container.sh """
-      /opt/miniconda/bin/conda init bash
-      export PYTHONPATH=
-      export PATH=/opt/miniconda/bin:$PATH
       cd ${project}
-      /opt/miniconda/bin/python -m tox -- --junitxml=${test_output}
+      python -m tox -- --junitxml=${test_output}
     """
     container.copyFrom("${project}/${test_output}", ".")
     xunit thresholds: [failed(unstableThreshold: '0')], tools: [JUnit(deleteOutputFiles: true, pattern: '*.xml', skipNoTestFiles: false, stopProcessingIfError: true)]
