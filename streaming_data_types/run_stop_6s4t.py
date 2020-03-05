@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, NamedTuple
 import flatbuffers
 from streaming_data_types.fbschemas.run_stop_6s4t import RunStop
 from streaming_data_types.utils import check_schema_identifier
@@ -40,7 +40,7 @@ def serialise_6s4t(
     return bytes(buff)
 
 
-def deserialise_6s4t(buffer):
+def deserialise_6s4t(buffer: bytes) -> NamedTuple:
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
     run_stop = RunStop.RunStop.GetRootAsRunStop(buffer, 0)

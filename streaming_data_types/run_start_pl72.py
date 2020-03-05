@@ -1,9 +1,9 @@
 import time
-from typing import Optional
+from typing import Optional, NamedTuple
 import flatbuffers
 from streaming_data_types.fbschemas.run_start_pl72 import RunStart
 from streaming_data_types.utils import check_schema_identifier
-
+from collections import namedtuple
 
 FILE_IDENTIFIER = b"pl72"
 
@@ -58,12 +58,30 @@ def serialise_pl72(
     return bytes(buffer)
 
 
-def deserialise_pl72(buffer):
+def deserialise_pl72(buffer: bytes) -> NamedTuple:
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
-    # run_start = RunStart.RunStart.GetRootAsRunStart(buffer, 0)
-    # service_id = run_start.ServiceId() if run_start.ServiceId() else b""
-    # broker = run_start.Broker() if run_start.Broker() else b""
-    # job_id =
+    run_start = RunStart.RunStart.GetRootAsRunStart(buffer, 0)
+    service_id = run_start.ServiceId() if run_start.ServiceId() else b""
+    broker = run_start.Broker() if run_start.Broker() else b""
+    job_id = run_start.JobId() if run_start.JobId() else b""
+    filename = run_start.Filename() if run_start.Filename() else b""
+    nexus_structure = run_start.NexusStructure() if run_start.NexusStructure() else b""
+    instrument_name = run_start.InstrumentName() if run_start.InstrumentName() else b""
+    run_name = run_start.RunName() if run_start.RunName() else b""
 
-    # TODO: return a namedTuple like ns10?
+    RunStartInfo = namedtuple(
+        "RunStartInfo",
+        "job_id filename start_time stop_time run_name nexus_structure service_id instrument_name broker",
+    )
+    return RunStartInfo(
+        job_id,
+        filename,
+        run_start.StartTime(),
+        run_start.StopTime(),
+        run_name,
+        nexus_structure,
+        service_id,
+        instrument_name,
+        broker,
+    )
