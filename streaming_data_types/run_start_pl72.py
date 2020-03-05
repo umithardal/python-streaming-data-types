@@ -18,7 +18,7 @@ def serialise_pl72(
     service_id: str = "",
     instrument_name: str = "TEST",
     broker: str = "localhost:9092",
-) -> bytes:
+) -> bytearray:
     builder = flatbuffers.Builder(136)
 
     if start_time is None:
@@ -55,10 +55,10 @@ def serialise_pl72(
     # Generate the output and replace the file_identifier
     buffer = builder.Output()
     buffer[4:8] = FILE_IDENTIFIER
-    return bytes(buffer)
+    return buffer
 
 
-def deserialise_pl72(buffer: bytes) -> NamedTuple:
+def deserialise_pl72(buffer: bytearray) -> NamedTuple:
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
     run_start = RunStart.RunStart.GetRootAsRunStart(buffer, 0)
@@ -75,13 +75,13 @@ def deserialise_pl72(buffer: bytes) -> NamedTuple:
         "job_id filename start_time stop_time run_name nexus_structure service_id instrument_name broker",
     )
     return RunStartInfo(
-        job_id,
-        filename,
+        job_id.decode(),
+        filename.decode(),
         run_start.StartTime(),
         run_start.StopTime(),
-        run_name,
-        nexus_structure,
-        service_id,
-        instrument_name,
-        broker,
+        run_name.decode(),
+        nexus_structure.decode(),
+        service_id.decode(),
+        instrument_name.decode(),
+        broker.decode(),
     )

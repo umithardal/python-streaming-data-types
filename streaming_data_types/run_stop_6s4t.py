@@ -12,7 +12,7 @@ def serialise_6s4t(
     run_name: str = "test_run",
     service_id: str = "",
     stop_time: Optional[int] = None,
-) -> bytes:
+) -> bytearray:
     builder = flatbuffers.Builder(136)
 
     if service_id is None:
@@ -37,10 +37,10 @@ def serialise_6s4t(
     # Generate the output and replace the file_identifier
     buff = builder.Output()
     buff[4:8] = FILE_IDENTIFIER
-    return bytes(buff)
+    return buff
 
 
-def deserialise_6s4t(buffer: bytes) -> NamedTuple:
+def deserialise_6s4t(buffer: bytearray) -> NamedTuple:
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
     run_stop = RunStop.RunStop.GetRootAsRunStop(buffer, 0)
@@ -50,4 +50,6 @@ def deserialise_6s4t(buffer: bytes) -> NamedTuple:
     stop_time = run_stop.StopTime()
 
     RunStopInfo = namedtuple("RunStopInfo", "stop_time run_name job_id service_id")
-    return RunStopInfo(stop_time, run_name, job_id, service_id)
+    return RunStopInfo(
+        stop_time, run_name.decode(), job_id.decode(), service_id.decode()
+    )
