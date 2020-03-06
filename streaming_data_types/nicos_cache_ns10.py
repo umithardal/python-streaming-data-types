@@ -1,6 +1,7 @@
+from collections import namedtuple
 import flatbuffers
-from streaming_data_types.fbschemas.ns10 import CacheEntry
-from streaming_data_types.utils import get_schema
+from streaming_data_types.fbschemas.nicos_cache_ns10 import CacheEntry
+from streaming_data_types.utils import check_schema_identifier
 
 
 FILE_IDENTIFIER = b"ns10"
@@ -25,32 +26,22 @@ def serialise_ns10(
 
     # Generate the output and replace the file_identifier
     buff = builder.Output()
-    buff[4:8] = b"ns10"
+    buff[4:8] = FILE_IDENTIFIER
 
     return buff
 
 
 def deserialise_ns10(buf):
-    # Check schema is correct
-    if get_schema(buf) != FILE_IDENTIFIER.decode():
-        raise RuntimeError(
-            f"Incorrect schema: expected {FILE_IDENTIFIER} but got {get_schema(buf)}"
-        )
+    check_schema_identifier(buf, FILE_IDENTIFIER)
 
     entry = CacheEntry.CacheEntry.GetRootAsCacheEntry(buf, 0)
 
-    key = entry.Key() if entry.Key() else ""
+    key = entry.Key() if entry.Key() else b""
     time_stamp = entry.Time()
     ttl = entry.Ttl() if entry.Ttl() else 0
     expired = entry.Expired() if entry.Expired() else False
-    value = entry.Value() if entry.Value() else ""
+    value = entry.Value() if entry.Value() else b""
 
-    cache_entry = {
-        "key": key.decode("utf-8"),
-        "time_stamp": time_stamp,
-        "ttl": ttl,
-        "expired": expired,
-        "value": value.decode("utf-8"),
-    }
+    Entry = namedtuple("Entry", "key time_stamp ttl expired value")
 
-    return cache_entry
+    return Entry(key.decode(), time_stamp, ttl, expired, value.decode())
