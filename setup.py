@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name="streaming_data_types",
-    version="0.1.0",
+    version="0.2.0",
     description="Python utilities for handling ESS streamed data",
     long_description="Python utilities for serialising and deserialising data via FlatBuffers for the European Spallation Source ERIC",
     author="ScreamingUdder",
