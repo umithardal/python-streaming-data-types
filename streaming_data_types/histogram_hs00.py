@@ -11,25 +11,24 @@ from streaming_data_types.utils import check_schema_identifier
 FILE_IDENTIFIER = b"hs00"
 
 
-def deserialise_hs00(buf):
+def deserialise_hs00(buffer):
     """
     Deserialise flatbuffer hs10 into a histogram.
 
-    :param buf:
+    :param buffer:
     :return: dict of histogram information
     """
-    check_schema_identifier(buf, FILE_IDENTIFIER)
-
-    event_hist = EventHistogram.EventHistogram.GetRootAsEventHistogram(buf, 0)
+    check_schema_identifier(buffer, FILE_IDENTIFIER)
+    event_hist = EventHistogram.EventHistogram.GetRootAsEventHistogram(buffer, 0)
 
     dims = []
     for i in range(event_hist.DimMetadataLength()):
-        bins_fb = event_hist.DimMetadata(i).BinBoundaries()
+        bins_offset = event_hist.DimMetadata(i).BinBoundaries()
 
         # Get bins
-        temp = ArrayDouble.ArrayDouble()
-        temp.Init(bins_fb.Bytes, bins_fb.Pos)
-        bins = temp.ValueAsNumpy()
+        bins_fb = ArrayDouble.ArrayDouble()
+        bins_fb.Init(bins_offset.Bytes, bins_offset.Pos)
+        bin_boundaries = bins_fb.ValueAsNumpy()
 
         # Check type
         if event_hist.DimMetadata(i).BinBoundariesType() != Array.ArrayDouble:
@@ -37,7 +36,7 @@ def deserialise_hs00(buf):
 
         hist_info = {
             "length": event_hist.DimMetadata(i).Length(),
-            "bin_boundaries": bins,
+            "bin_boundaries": bin_boundaries,
             "unit": event_hist.DimMetadata(i).Unit().decode("utf-8"),
             "label": event_hist.DimMetadata(i).Label().decode("utf-8"),
         }
@@ -49,18 +48,18 @@ def deserialise_hs00(buf):
     if event_hist.DataType() != Array.ArrayDouble:
         raise TypeError("Type of the data array is incorrect")
 
-    data_fb = event_hist.Data()
-    temp = ArrayDouble.ArrayDouble()
-    temp.Init(data_fb.Bytes, data_fb.Pos)
+    data_offset = event_hist.Data()
+    data_fb = ArrayDouble.ArrayDouble()
+    data_fb.Init(data_offset.Bytes, data_offset.Pos)
     shape = event_hist.CurrentShapeAsNumpy().tolist()
-    data = temp.ValueAsNumpy().reshape(shape)
+    data = data_fb.ValueAsNumpy().reshape(shape)
 
     # Get the errors
-    errors_fb = event_hist.Errors()
-    if errors_fb:
-        temp = ArrayDouble.ArrayDouble()
-        temp.Init(errors_fb.Bytes, errors_fb.Pos)
-        errors = temp.ValueAsNumpy().reshape(shape)
+    errors_offset = event_hist.Errors()
+    if errors_offset:
+        errors_fb = ArrayDouble.ArrayDouble()
+        errors_fb.Init(errors_offset.Bytes, errors_offset.Pos)
+        errors = errors_fb.ValueAsNumpy().reshape(shape)
     else:
         errors = []
 
@@ -78,25 +77,25 @@ def deserialise_hs00(buf):
 
 
 def _serialise_metadata(builder, length, edges, unit, label):
-    unit_encoded = builder.CreateString(unit)
-    label_encoded = builder.CreateString(label)
+    unit_offset = builder.CreateString(unit)
+    label_offset = builder.CreateString(label)
 
     ArrayDouble.ArrayDoubleStartValueVector(builder, len(edges))
     # FlatBuffers builds arrays backwards
     for x in reversed(edges):
         builder.PrependFloat64(x)
-    bins = builder.EndVector(len(edges))
+    bins_vector = builder.EndVector(len(edges))
     # Add the bins
     ArrayDouble.ArrayDoubleStart(builder)
-    ArrayDouble.ArrayDoubleAddValue(builder, bins)
-    pos_bin = ArrayDouble.ArrayDoubleEnd(builder)
+    ArrayDouble.ArrayDoubleAddValue(builder, bins_vector)
+    bins_offset = ArrayDouble.ArrayDoubleEnd(builder)
 
     DimensionMetaData.DimensionMetaDataStart(builder)
     DimensionMetaData.DimensionMetaDataAddLength(builder, length)
-    DimensionMetaData.DimensionMetaDataAddBinBoundaries(builder, pos_bin)
+    DimensionMetaData.DimensionMetaDataAddBinBoundaries(builder, bins_offset)
     DimensionMetaData.DimensionMetaDataAddBinBoundariesType(builder, Array.ArrayDouble)
-    DimensionMetaData.DimensionMetaDataAddLabel(builder, label_encoded)
-    DimensionMetaData.DimensionMetaDataAddUnit(builder, unit_encoded)
+    DimensionMetaData.DimensionMetaDataAddLabel(builder, label_offset)
+    DimensionMetaData.DimensionMetaDataAddUnit(builder, unit_offset)
     return DimensionMetaData.DimensionMetaDataEnd(builder)
 
 
@@ -106,14 +105,14 @@ def serialise_hs00(histogram):
 
     :param histogram: A dictionary containing the histogram to serialise.
     """
-    source = None
-    info = None
+    source_offset = None
+    info_offset = None
 
     builder = flatbuffers.Builder(1024)
     if "source" in histogram:
-        source = builder.CreateString(histogram["source"])
+        source_offset = builder.CreateString(histogram["source"])
     if "info" in histogram:
-        info = builder.CreateString(histogram["info"])
+        info_offset = builder.CreateString(histogram["info"])
 
     # Build shape array
     rank = len(histogram["current_shape"])
@@ -121,7 +120,7 @@ def serialise_hs00(histogram):
     # FlatBuffers builds arrays backwards
     for s in reversed(histogram["current_shape"]):
         builder.PrependUint32(s)
-    shape = builder.EndVector(rank)
+    shape_offset = builder.EndVector(rank)
 
     # Build dimensions metadata
     metadata = []
@@ -147,11 +146,12 @@ def serialise_hs00(histogram):
     # FlatBuffers builds arrays backwards
     for x in reversed(histogram["data"].flatten()):
         builder.PrependFloat64(x)
-    data = builder.EndVector(data_len)
+    data_vector = builder.EndVector(data_len)
     ArrayDouble.ArrayDoubleStart(builder)
-    ArrayDouble.ArrayDoubleAddValue(builder, data)
-    pos_data = ArrayDouble.ArrayDoubleEnd(builder)
+    ArrayDouble.ArrayDoubleAddValue(builder, data_vector)
+    data_offset = ArrayDouble.ArrayDoubleEnd(builder)
 
+    errors_offset = None
     if "errors" in histogram:
         ArrayDouble.ArrayDoubleStartValueVector(builder, data_len)
         for x in reversed(histogram["errors"].flatten()):
@@ -159,30 +159,30 @@ def serialise_hs00(histogram):
         errors = builder.EndVector(data_len)
         ArrayDouble.ArrayDoubleStart(builder)
         ArrayDouble.ArrayDoubleAddValue(builder, errors)
-        pos_errors = ArrayDouble.ArrayDoubleEnd(builder)
+        errors_offset = ArrayDouble.ArrayDoubleEnd(builder)
 
     # Build the actual buffer
     EventHistogram.EventHistogramStart(builder)
-    if info:
-        EventHistogram.EventHistogramAddInfo(builder, info)
-    EventHistogram.EventHistogramAddData(builder, pos_data)
-    EventHistogram.EventHistogramAddCurrentShape(builder, shape)
+    if info_offset:
+        EventHistogram.EventHistogramAddInfo(builder, info_offset)
+    EventHistogram.EventHistogramAddData(builder, data_offset)
+    EventHistogram.EventHistogramAddCurrentShape(builder, shape_offset)
     EventHistogram.EventHistogramAddDimMetadata(builder, metadata_vector)
     EventHistogram.EventHistogramAddTimestamp(builder, histogram["timestamp"])
-    if source:
-        EventHistogram.EventHistogramAddSource(builder, source)
+    if source_offset:
+        EventHistogram.EventHistogramAddSource(builder, source_offset)
     EventHistogram.EventHistogramAddDataType(builder, Array.ArrayDouble)
-    if "errors" in histogram:
-        EventHistogram.EventHistogramAddErrors(builder, pos_errors)
+    if errors_offset:
+        EventHistogram.EventHistogramAddErrors(builder, errors_offset)
         EventHistogram.EventHistogramAddErrorsType(builder, Array.ArrayDouble)
     if "last_metadata_timestamp" in histogram:
         EventHistogram.EventHistogramAddLastMetadataTimestamp(
             builder, histogram["last_metadata_timestamp"]
         )
-    hist = EventHistogram.EventHistogramEnd(builder)
-    builder.Finish(hist)
+    hist_message = EventHistogram.EventHistogramEnd(builder)
+    builder.Finish(hist_message)
 
     # Generate the output and replace the file_identifier
-    buff = builder.Output()
-    buff[4:8] = FILE_IDENTIFIER
-    return buff
+    buffer = builder.Output()
+    buffer[4:8] = FILE_IDENTIFIER
+    return buffer
