@@ -35,9 +35,9 @@ def serialise_6s4t(
     builder.Finish(run_stop_message)
 
     # Generate the output and replace the file_identifier
-    buff = builder.Output()
-    buff[4:8] = FILE_IDENTIFIER
-    return buff
+    buffer = builder.Output()
+    buffer[4:8] = FILE_IDENTIFIER
+    return buffer
 
 
 def deserialise_6s4t(buffer: bytearray) -> NamedTuple:

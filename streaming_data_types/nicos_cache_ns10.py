@@ -12,29 +12,29 @@ def serialise_ns10(
 ):
     builder = flatbuffers.Builder(128)
 
-    value = builder.CreateString(value)
-    key = builder.CreateString(key)
+    value_offset = builder.CreateString(value)
+    key_offset = builder.CreateString(key)
 
     CacheEntry.CacheEntryStart(builder)
-    CacheEntry.CacheEntryAddValue(builder, value)
+    CacheEntry.CacheEntryAddValue(builder, value_offset)
     CacheEntry.CacheEntryAddExpired(builder, expired)
     CacheEntry.CacheEntryAddTtl(builder, ttl)
     CacheEntry.CacheEntryAddTime(builder, time_stamp)
-    CacheEntry.CacheEntryAddKey(builder, key)
-    entry = CacheEntry.CacheEntryEnd(builder)
-    builder.Finish(entry)
+    CacheEntry.CacheEntryAddKey(builder, key_offset)
+    cache_entry_message = CacheEntry.CacheEntryEnd(builder)
+    builder.Finish(cache_entry_message)
 
     # Generate the output and replace the file_identifier
-    buff = builder.Output()
-    buff[4:8] = FILE_IDENTIFIER
+    buffer = builder.Output()
+    buffer[4:8] = FILE_IDENTIFIER
 
-    return buff
+    return buffer
 
 
-def deserialise_ns10(buf):
-    check_schema_identifier(buf, FILE_IDENTIFIER)
+def deserialise_ns10(buffer):
+    check_schema_identifier(buffer, FILE_IDENTIFIER)
 
-    entry = CacheEntry.CacheEntry.GetRootAsCacheEntry(buf, 0)
+    entry = CacheEntry.CacheEntry.GetRootAsCacheEntry(buffer, 0)
 
     key = entry.Key() if entry.Key() else b""
     time_stamp = entry.Time()
