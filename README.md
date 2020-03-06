@@ -10,6 +10,8 @@ https://github.com/ess-dmsc/streaming-data-types
 |----|-----------|----------|
 |hs00|Histogram schema|Y|
 |ns10|NICOS cache entry schema|Y|
+|pl72|Run start|N|
+|6s4t|Run stop|N|
 
 ### hs00
 Schema for histogram data. It is one of the more complicated to use schemas.
