@@ -1,4 +1,4 @@
-def _get_schema(buffer) -> str:
+def _get_schema(buffer):
     """
     Extract the schema code embedded in the buffer
 
@@ -8,7 +8,7 @@ def _get_schema(buffer) -> str:
     return buffer[4:8].decode("utf-8")
 
 
-def check_schema_identifier(buffer, expected_identifer: bytes):
+def check_schema_identifier(buffer, expected_identifer):
     """
     Check the schema code embedded in the buffer matches an expected identifier
 
@@ -17,5 +17,7 @@ def check_schema_identifier(buffer, expected_identifer: bytes):
     """
     if _get_schema(buffer) != expected_identifer.decode():
         raise RuntimeError(
-            f"Incorrect schema: expected {expected_identifer} but got {_get_schema(buffer)}"
+            "Incorrect schema: expected {} but got {}".format(
+                expected_identifer, _get_schema(buffer)
+            )
         )

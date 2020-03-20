@@ -7,9 +7,7 @@ from streaming_data_types.utils import check_schema_identifier
 FILE_IDENTIFIER = b"ns10"
 
 
-def serialise_ns10(
-    key: str, value: str, time_stamp: float = 0, ttl: float = 0, expired: bool = False
-):
+def serialise_ns10(key, value, time_stamp=0, ttl=0, expired=False):
     builder = flatbuffers.Builder(128)
 
     value_offset = builder.CreateString(value)
