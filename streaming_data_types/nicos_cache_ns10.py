@@ -44,4 +44,4 @@ def deserialise_ns10(buffer):
 
     Entry = namedtuple("Entry", "key time_stamp ttl expired value")
 
-    return Entry(key.decode(), time_stamp, ttl, expired, value.decode())
+    return Entry(key.decode().strip(), time_stamp, ttl, expired, value.decode())
