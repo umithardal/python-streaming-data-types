@@ -2,56 +2,67 @@ import flatbuffers
 from streaming_data_types.fbschemas.logdata_f142 import LogData
 from streaming_data_types.fbschemas.logdata_f142.Value import Value
 from streaming_data_types.fbschemas.logdata_f142.UByte import (
+    UByte,
     UByteStart,
     UByteAddValue,
     UByteEnd,
 )
 from streaming_data_types.fbschemas.logdata_f142.Byte import (
+    Byte,
     ByteStart,
     ByteAddValue,
     ByteEnd,
 )
 from streaming_data_types.fbschemas.logdata_f142.UShort import (
+    UShort,
     UShortStart,
     UShortAddValue,
     UShortEnd,
 )
 from streaming_data_types.fbschemas.logdata_f142.Short import (
+    Short,
     ShortStart,
     ShortAddValue,
     ShortEnd,
 )
 from streaming_data_types.fbschemas.logdata_f142.UInt import (
+    UInt,
     UIntStart,
     UIntAddValue,
     UIntEnd,
 )
 from streaming_data_types.fbschemas.logdata_f142.Int import (
+    Int,
     IntStart,
     IntAddValue,
     IntEnd,
 )
 from streaming_data_types.fbschemas.logdata_f142.ULong import (
+    ULong,
     ULongStart,
     ULongAddValue,
     ULongEnd,
 )
 from streaming_data_types.fbschemas.logdata_f142.Long import (
+    Long,
     LongStart,
     LongAddValue,
     LongEnd,
 )
 from streaming_data_types.fbschemas.logdata_f142.Float import (
+    Float,
     FloatStart,
     FloatAddValue,
     FloatEnd,
 )
 from streaming_data_types.fbschemas.logdata_f142.Double import (
+    Double,
     DoubleStart,
     DoubleAddValue,
     DoubleEnd,
 )
 from streaming_data_types.fbschemas.logdata_f142.String import (
+    String,
     StringStart,
     StringAddValue,
     StringEnd,
@@ -242,13 +253,33 @@ def serialise_f142(
     return _complete_buffer(builder, timestamp_unix_ns)
 
 
+map_fb_enum_to_type = {
+    Value.Byte: Byte,
+    Value.UByte: UByte,
+    Value.Short: Short,
+    Value.UShort: UShort,
+    Value.Int: Int,
+    Value.UInt: UInt,
+    Value.Long: Long,
+    Value.ULong: ULong,
+    Value.Float: Float,
+    Value.Double: Double,
+    Value.String: String,
+}
+
+
 def deserialise_f142(buffer: bytearray) -> NamedTuple:
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
     log_data = LogData.LogData.GetRootAsLogData(buffer, 0)
     source_name = log_data.SourceName() if log_data.SourceName() else b""
-    value = log_data.Value().GetVectorAsNumpy()
+
+    value_offset = log_data.Value()
+    value_fb = map_fb_enum_to_type[log_data.ValueType()]()
+    value_fb.Init(value_offset.Bytes, value_offset.Pos)
+    value = np.array(value_fb.Value())
+
     timestamp = log_data.Timestamp()
 
-    LogDataInfo = namedtuple("LogDataInfo", "value source_name timestamp")
+    LogDataInfo = namedtuple("LogDataInfo", "value source_name timestamp_unix_ns")
     return LogDataInfo(value, source_name.decode(), timestamp)

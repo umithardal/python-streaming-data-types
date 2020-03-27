@@ -14,7 +14,7 @@ class TestSerialisationf142:
         deserialised_tuple = deserialise_f142(buf)
 
         assert deserialised_tuple.source_name == self.original_entry["source_name"]
-        assert deserialised_tuple.data == self.original_entry["data"]
+        assert deserialised_tuple.value == self.original_entry["value"]
         assert (
             deserialised_tuple.timestamp_unix_ns
             == self.original_entry["timestamp_unix_ns"]
