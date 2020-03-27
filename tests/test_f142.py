@@ -71,6 +71,19 @@ class TestSerialisationf142:
         except NotImplementedError:
             pass
 
+    def test_raises_not_implemented_error_when_trying_to_serialise_numpy_complex_number_type(
+        self,
+    ):
+        complex_log = {
+            "source_name": "some_source",
+            "value": np.complex(3, 4),
+            "timestamp_unix_ns": 1585332414000000000,
+        }
+        try:
+            serialise_f142(**complex_log)
+        except NotImplementedError:
+            pass
+
     def test_if_buffer_has_wrong_id_then_throws(self):
         buf = serialise_f142(**self.original_entry)
 
