@@ -70,9 +70,9 @@ def _complete_buffer(builder, timestamp_unix_ns: int) -> bytearray:
     return buff
 
 
-def _setup_builder() -> Tuple[flatbuffers.Builder, int]:
+def _setup_builder(source_name: str) -> Tuple[flatbuffers.Builder, int]:
     builder = flatbuffers.Builder(1024)
-    source = builder.CreateString("Forwarder-Python")
+    source = builder.CreateString(source_name)
     return builder, source
 
 
@@ -208,16 +208,19 @@ def _ensure_data_is_numpy_type(data: Any) -> np.ndarray:
     return data
 
 
-def serialise_f142(data: Any, timestamp_unix_ns: int = 0) -> bytearray:
+def serialise_f142(
+    data: Any, source_name: str, timestamp_unix_ns: int = 0
+) -> bytearray:
     """
     Serialise data and corresponding timestamp as an f142 Flatbuffer message.
     Should automagically use a sensible type for data in the message, but if
     in doubt pass data in as a numpy ndarray of a carefully chosen dtype.
 
     :param data: only scalar value currently supported; if ndarray then ndim must be 0
+    :param source_name: name of the data source
     :param timestamp_unix_ns: timestamp corresponding to data, e.g. when data was measured, in nanoseconds
     """
-    builder, source = _setup_builder()
+    builder, source = _setup_builder(source_name)
 
     data = _ensure_data_is_numpy_type(data)
 
