@@ -186,7 +186,7 @@ def _serialise_string(builder, data, source):
     LogData.LogDataAddValueType(builder, Value.String)
 
 
-map_scalar_type_to_serialiser = {
+_map_scalar_type_to_serialiser = {
     np.byte: _serialise_byte,
     np.ubyte: _serialise_ubyte,
     np.int8: _serialise_short,
@@ -230,12 +230,12 @@ def serialise_f142(data: Any, timestamp_unix_ns: int = 0) -> bytearray:
         _serialise_string(builder, data, source)
     else:
         try:
-            map_scalar_type_to_serialiser[data.dtype](builder, data, source)
+            _map_scalar_type_to_serialiser[data.dtype](builder, data, source)
         except KeyError:
             # There are a few numpy types we don't try to handle, for example complex numbers
             raise Exception(
                 f"Cannot serialise data of type {data.dtype}, must use one of "
-                f"{list(map_scalar_type_to_serialiser.keys()).append(np.unicode_)}"
+                f"{list(_map_scalar_type_to_serialiser.keys()).append(np.unicode_)}"
             )
 
     return _complete_buffer(builder, timestamp_unix_ns)
