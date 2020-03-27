@@ -203,8 +203,9 @@ def _serialise_double(builder: flatbuffers.Builder, data: np.ndarray, source: in
 
 
 def _serialise_string(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+    string_offset = builder.CreateString(data.item())
     StringStart(builder)
-    StringAddValue(builder, data.item())
+    StringAddValue(builder, string_offset)
     value_position = StringEnd(builder)
     LogData.LogDataStart(builder)
     LogData.LogDataAddSourceName(builder, source)
@@ -249,7 +250,9 @@ def serialise_f142(
 
     # We can use a dictionary to map most numpy types to one of the types defined in the flatbuffer schema
     # but we have to handle strings separately as there are many subtypes
-    if np.issubdtype(value.dtype, np.unicode_):
+    if np.issubdtype(value.dtype, np.unicode_) or np.issubdtype(
+        value.dtype, np.string_
+    ):
         _serialise_string(builder, value, source)
     else:
         try:
@@ -303,6 +306,11 @@ def deserialise_f142(buffer: bytearray) -> NamedTuple:
         value = value_fb.ValueAsNumpy()
     except AttributeError:
         value = np.array(value_fb.Value())
+
+    if np.issubdtype(value.dtype, np.unicode_) or np.issubdtype(
+        value.dtype, np.string_
+    ):
+        value = value.item().decode()
 
     timestamp = log_data.Timestamp()
 
