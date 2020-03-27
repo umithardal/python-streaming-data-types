@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 from streaming_data_types.logdata_f142 import serialise_f142, deserialise_f142
 
 
@@ -9,7 +10,7 @@ class TestSerialisationf142:
         "timestamp_unix_ns": 1585332414000000000,
     }
 
-    def test_serialises_and_deserialises_f142_message_correctly(self):
+    def test_serialises_and_deserialises_integer_f142_message_correctly(self):
         buf = serialise_f142(**self.original_entry)
         deserialised_tuple = deserialise_f142(buf)
 
@@ -19,6 +20,32 @@ class TestSerialisationf142:
             deserialised_tuple.timestamp_unix_ns
             == self.original_entry["timestamp_unix_ns"]
         )
+
+    def test_serialises_and_deserialises_float_f142_message_correctly(self):
+        float_log = {
+            "source_name": "some_source",
+            "value": 1.234,
+            "timestamp_unix_ns": 1585332414000000000,
+        }
+        buf = serialise_f142(**float_log)
+        deserialised_tuple = deserialise_f142(buf)
+
+        assert deserialised_tuple.source_name == float_log["source_name"]
+        assert deserialised_tuple.value == float_log["value"]
+        assert deserialised_tuple.timestamp_unix_ns == float_log["timestamp_unix_ns"]
+
+    def test_serialises_and_deserialises_scalar_ndarray_f142_message_correctly(self):
+        numpy_log = {
+            "source_name": "some_source",
+            "value": np.array(42),
+            "timestamp_unix_ns": 1585332414000000000,
+        }
+        buf = serialise_f142(**numpy_log)
+        deserialised_tuple = deserialise_f142(buf)
+
+        assert deserialised_tuple.source_name == numpy_log["source_name"]
+        assert deserialised_tuple.value == np.array(numpy_log["value"])
+        assert deserialised_tuple.timestamp_unix_ns == numpy_log["timestamp_unix_ns"]
 
     def test_serialises_and_deserialises_string_f142_message_correctly(self):
         string_log = {
@@ -32,6 +59,17 @@ class TestSerialisationf142:
         assert deserialised_tuple.source_name == string_log["source_name"]
         assert deserialised_tuple.value == string_log["value"]
         assert deserialised_tuple.timestamp_unix_ns == string_log["timestamp_unix_ns"]
+
+    def test_raises_not_implemented_error_when_trying_to_serialise_array(self):
+        array_log = {
+            "source_name": "some_source",
+            "value": [1, 2, 3],
+            "timestamp_unix_ns": 1585332414000000000,
+        }
+        try:
+            serialise_f142(**array_log)
+        except NotImplementedError:
+            pass
 
     def test_if_buffer_has_wrong_id_then_throws(self):
         buf = serialise_f142(**self.original_entry)
