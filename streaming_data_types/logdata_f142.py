@@ -67,6 +67,17 @@ from streaming_data_types.fbschemas.logdata_f142.String import (
     StringAddValue,
     StringEnd,
 )
+from streaming_data_types.fbschemas.logdata_f142.ArrayByte import ArrayByte
+from streaming_data_types.fbschemas.logdata_f142.ArrayUByte import ArrayUByte
+from streaming_data_types.fbschemas.logdata_f142.ArrayShort import ArrayShort
+from streaming_data_types.fbschemas.logdata_f142.ArrayUShort import ArrayUShort
+from streaming_data_types.fbschemas.logdata_f142.ArrayInt import ArrayInt
+from streaming_data_types.fbschemas.logdata_f142.ArrayUInt import ArrayUInt
+from streaming_data_types.fbschemas.logdata_f142.ArrayLong import ArrayLong
+from streaming_data_types.fbschemas.logdata_f142.ArrayULong import ArrayULong
+from streaming_data_types.fbschemas.logdata_f142.ArrayFloat import ArrayFloat
+from streaming_data_types.fbschemas.logdata_f142.ArrayDouble import ArrayDouble
+from streaming_data_types.fbschemas.logdata_f142.ArrayString import ArrayString
 from streaming_data_types.utils import check_schema_identifier
 import numpy as np
 from typing import Any, Tuple, NamedTuple
@@ -265,6 +276,17 @@ map_fb_enum_to_type = {
     Value.Float: Float,
     Value.Double: Double,
     Value.String: String,
+    Value.ArrayByte: ArrayByte,
+    Value.ArrayUByte: ArrayUByte,
+    Value.ArrayShort: ArrayShort,
+    Value.ArrayUShort: ArrayUShort,
+    Value.ArrayInt: ArrayInt,
+    Value.ArrayUInt: ArrayUInt,
+    Value.ArrayLong: ArrayLong,
+    Value.ArrayULong: ArrayULong,
+    Value.ArrayFloat: ArrayFloat,
+    Value.ArrayDouble: ArrayDouble,
+    Value.ArrayString: ArrayString,
 }
 
 
@@ -277,7 +299,10 @@ def deserialise_f142(buffer: bytearray) -> NamedTuple:
     value_offset = log_data.Value()
     value_fb = map_fb_enum_to_type[log_data.ValueType()]()
     value_fb.Init(value_offset.Bytes, value_offset.Pos)
-    value = np.array(value_fb.Value())
+    try:
+        value = value_fb.ValueAsNumpy()
+    except AttributeError:
+        value = np.array(value_fb.Value())
 
     timestamp = log_data.Timestamp()
 
