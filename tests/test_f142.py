@@ -5,7 +5,7 @@ from streaming_data_types.logdata_f142 import serialise_f142, deserialise_f142
 class TestSerialisationf142:
     original_entry = {
         "source_name": "some_source",
-        "data": 578214,
+        "value": 578214,
         "timestamp_unix_ns": 1585332414000000000,
     }
 
