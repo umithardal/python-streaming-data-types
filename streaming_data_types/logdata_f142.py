@@ -11,15 +11,30 @@ from streaming_data_types.fbschemas.logdata_f142.Byte import (
     ByteAddValue,
     ByteEnd,
 )
+from streaming_data_types.fbschemas.logdata_f142.UShort import (
+    UShortStart,
+    UShortAddValue,
+    UShortEnd,
+)
 from streaming_data_types.fbschemas.logdata_f142.Short import (
     ShortStart,
     ShortAddValue,
     ShortEnd,
 )
+from streaming_data_types.fbschemas.logdata_f142.UInt import (
+    UIntStart,
+    UIntAddValue,
+    UIntEnd,
+)
 from streaming_data_types.fbschemas.logdata_f142.Int import (
     IntStart,
     IntAddValue,
     IntEnd,
+)
+from streaming_data_types.fbschemas.logdata_f142.ULong import (
+    ULongStart,
+    ULongAddValue,
+    ULongEnd,
 )
 from streaming_data_types.fbschemas.logdata_f142.Long import (
     LongStart,
@@ -91,6 +106,16 @@ def _serialise_short(builder, data, source):
     LogData.LogDataAddValueType(builder, Value.Short)
 
 
+def _serialise_ushort(builder, data, source):
+    UShortStart(builder)
+    UShortAddValue(builder, data.astype(np.uint16)[0])
+    value_position = UShortEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.UShort)
+
+
 def _serialise_int(builder, data, source):
     IntStart(builder)
     IntAddValue(builder, data.astype(np.int32)[0])
@@ -101,6 +126,16 @@ def _serialise_int(builder, data, source):
     LogData.LogDataAddValueType(builder, Value.Int)
 
 
+def _serialise_uint(builder, data, source):
+    UIntStart(builder)
+    UIntAddValue(builder, data.astype(np.uint32)[0])
+    value_position = UIntEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.UInt)
+
+
 def _serialise_long(builder, data, source):
     LongStart(builder)
     LongAddValue(builder, data.astype(np.int64)[0])
@@ -109,6 +144,16 @@ def _serialise_long(builder, data, source):
     LogData.LogDataAddSourceName(builder, source)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.Long)
+
+
+def _serialise_ulong(builder, data, source):
+    ULongStart(builder)
+    ULongAddValue(builder, data.astype(np.uint64)[0])
+    value_position = ULongEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.ULong)
 
 
 def _serialise_float(builder, data, source):
@@ -148,10 +193,10 @@ map_scalar_type_to_serialiser = {
     np.int16: _serialise_short,
     np.int32: _serialise_int,
     np.int64: _serialise_long,
-    np.uint8: "",
-    np.uint16: "",
-    np.uint32: "",
-    np.uint64: "",
+    np.uint8: _serialise_ushort,
+    np.uint16: _serialise_ushort,
+    np.uint32: _serialise_uint,
+    np.uint64: _serialise_ulong,
     np.float32: _serialise_float,
     np.float64: _serialise_double,
 }
