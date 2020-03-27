@@ -57,7 +57,7 @@ from streaming_data_types.fbschemas.logdata_f142.String import (
     StringEnd,
 )
 import numpy as np
-from typing import Any
+from typing import Any, Tuple
 
 
 def _complete_buffer(builder, timestamp_unix_ns: int) -> bytearray:
@@ -70,13 +70,13 @@ def _complete_buffer(builder, timestamp_unix_ns: int) -> bytearray:
     return buff
 
 
-def _setup_builder():
+def _setup_builder() -> Tuple[flatbuffers.Builder, int]:
     builder = flatbuffers.Builder(1024)
     source = builder.CreateString("Forwarder-Python")
     return builder, source
 
 
-def _serialise_byte(builder, data, source):
+def _serialise_byte(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     ByteStart(builder)
     ByteAddValue(builder, data.astype(np.byte)[0])
     value_position = ByteEnd(builder)
@@ -86,7 +86,7 @@ def _serialise_byte(builder, data, source):
     LogData.LogDataAddValueType(builder, Value.Byte)
 
 
-def _serialise_ubyte(builder, data, source):
+def _serialise_ubyte(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     UByteStart(builder)
     UByteAddValue(builder, data.astype(np.ubyte)[0])
     value_position = UByteEnd(builder)
@@ -96,7 +96,7 @@ def _serialise_ubyte(builder, data, source):
     LogData.LogDataAddValueType(builder, Value.UByte)
 
 
-def _serialise_short(builder, data, source):
+def _serialise_short(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     ShortStart(builder)
     ShortAddValue(builder, data.astype(np.int16)[0])
     value_position = ShortEnd(builder)
@@ -106,7 +106,7 @@ def _serialise_short(builder, data, source):
     LogData.LogDataAddValueType(builder, Value.Short)
 
 
-def _serialise_ushort(builder, data, source):
+def _serialise_ushort(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     UShortStart(builder)
     UShortAddValue(builder, data.astype(np.uint16)[0])
     value_position = UShortEnd(builder)
@@ -116,7 +116,7 @@ def _serialise_ushort(builder, data, source):
     LogData.LogDataAddValueType(builder, Value.UShort)
 
 
-def _serialise_int(builder, data, source):
+def _serialise_int(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     IntStart(builder)
     IntAddValue(builder, data.astype(np.int32)[0])
     value_position = IntEnd(builder)
@@ -126,7 +126,7 @@ def _serialise_int(builder, data, source):
     LogData.LogDataAddValueType(builder, Value.Int)
 
 
-def _serialise_uint(builder, data, source):
+def _serialise_uint(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     UIntStart(builder)
     UIntAddValue(builder, data.astype(np.uint32)[0])
     value_position = UIntEnd(builder)
@@ -136,7 +136,7 @@ def _serialise_uint(builder, data, source):
     LogData.LogDataAddValueType(builder, Value.UInt)
 
 
-def _serialise_long(builder, data, source):
+def _serialise_long(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     LongStart(builder)
     LongAddValue(builder, data.astype(np.int64)[0])
     value_position = LongEnd(builder)
@@ -146,7 +146,7 @@ def _serialise_long(builder, data, source):
     LogData.LogDataAddValueType(builder, Value.Long)
 
 
-def _serialise_ulong(builder, data, source):
+def _serialise_ulong(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     ULongStart(builder)
     ULongAddValue(builder, data.astype(np.uint64)[0])
     value_position = ULongEnd(builder)
@@ -156,7 +156,7 @@ def _serialise_ulong(builder, data, source):
     LogData.LogDataAddValueType(builder, Value.ULong)
 
 
-def _serialise_float(builder, data, source):
+def _serialise_float(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     FloatStart(builder)
     FloatAddValue(builder, data.astype(np.float64)[0])
     value_position = FloatEnd(builder)
@@ -166,7 +166,7 @@ def _serialise_float(builder, data, source):
     LogData.LogDataAddValueType(builder, Value.Float)
 
 
-def _serialise_double(builder, data, source):
+def _serialise_double(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     DoubleStart(builder)
     DoubleAddValue(builder, data.astype(np.float64)[0])
     value_position = DoubleEnd(builder)
@@ -176,7 +176,7 @@ def _serialise_double(builder, data, source):
     LogData.LogDataAddValueType(builder, Value.Double)
 
 
-def _serialise_string(builder, data, source):
+def _serialise_string(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     StringStart(builder)
     StringAddValue(builder, data.astype(np.unicode_)[0])
     value_position = StringEnd(builder)
