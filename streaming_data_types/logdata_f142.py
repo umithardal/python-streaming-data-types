@@ -267,7 +267,7 @@ def serialise_f142(
     return _complete_buffer(builder, timestamp_unix_ns)
 
 
-map_fb_enum_to_type = {
+_map_fb_enum_to_type = {
     Value.Byte: Byte,
     Value.UByte: UByte,
     Value.Short: Short,
@@ -300,7 +300,7 @@ def deserialise_f142(buffer: bytearray) -> NamedTuple:
     source_name = log_data.SourceName() if log_data.SourceName() else b""
 
     value_offset = log_data.Value()
-    value_fb = map_fb_enum_to_type[log_data.ValueType()]()
+    value_fb = _map_fb_enum_to_type[log_data.ValueType()]()
     value_fb.Init(value_offset.Bytes, value_offset.Pos)
     try:
         value = value_fb.ValueAsNumpy()
