@@ -67,6 +67,13 @@ from streaming_data_types.fbschemas.logdata_f142.String import (
     StringAddValue,
     StringEnd,
 )
+from streaming_data_types.fbschemas.logdata_f142.ArrayString import (
+    ArrayString,
+    ArrayStringStart,
+    ArrayStringAddValue,
+    ArrayStringEnd,
+    ArrayStringStartValueVector,
+)
 from streaming_data_types.fbschemas.logdata_f142.ArrayByte import ArrayByte
 from streaming_data_types.fbschemas.logdata_f142.ArrayUByte import ArrayUByte
 from streaming_data_types.fbschemas.logdata_f142.ArrayShort import ArrayShort
@@ -77,10 +84,9 @@ from streaming_data_types.fbschemas.logdata_f142.ArrayLong import ArrayLong
 from streaming_data_types.fbschemas.logdata_f142.ArrayULong import ArrayULong
 from streaming_data_types.fbschemas.logdata_f142.ArrayFloat import ArrayFloat
 from streaming_data_types.fbschemas.logdata_f142.ArrayDouble import ArrayDouble
-from streaming_data_types.fbschemas.logdata_f142.ArrayString import ArrayString
 from streaming_data_types.utils import check_schema_identifier
 import numpy as np
-from typing import Any, Tuple, NamedTuple
+from typing import Any, Tuple, NamedTuple, Callable, Dict, Union
 from collections import namedtuple
 
 
@@ -213,6 +219,23 @@ def _serialise_string(builder: flatbuffers.Builder, data: np.ndarray, source: in
     LogData.LogDataAddValueType(builder, Value.String)
 
 
+def _serialise_stringarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+    string_offsets = [
+        builder.CreateString(string_item) for string_item in reversed(data)
+    ]
+    ArrayStringStartValueVector(builder, len(data))
+    for string_offset in string_offsets:
+        builder.PrependSOffsetTRelative(string_offset)
+    string_array_offset = builder.EndVector(len(data))
+    ArrayStringStart(builder)
+    ArrayStringAddValue(builder, string_array_offset)
+    value_position = ArrayStringEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.ArrayString)
+
+
 _map_scalar_type_to_serialiser = {
     np.dtype("byte"): _serialise_byte,
     np.dtype("ubyte"): _serialise_ubyte,
@@ -226,6 +249,21 @@ _map_scalar_type_to_serialiser = {
     np.dtype("uint64"): _serialise_ulong,
     np.dtype("float32"): _serialise_float,
     np.dtype("float64"): _serialise_double,
+}
+
+_map_array_type_to_serialiser = {
+    # np.dtype("byte"): _serialise_bytearray,
+    # np.dtype("ubyte"): _serialise_ubytearray,
+    # np.dtype("int8"): _serialise_shortarray,
+    # np.dtype("int16"): _serialise_shortarray,
+    # np.dtype("int32"): _serialise_intarray,
+    # np.dtype("int64"): _serialise_longarray,
+    # np.dtype("uint8"): _serialise_ushortarray,
+    # np.dtype("uint16"): _serialise_ushortarray,
+    # np.dtype("uint32"): _serialise_uintarray,
+    # np.dtype("uint64"): _serialise_ulongarray,
+    # np.dtype("float32"): _serialise_floatarray,
+    # np.dtype("float64"): _serialise_doublearray,
 }
 
 
@@ -242,29 +280,48 @@ def serialise_f142(
     :param timestamp_unix_ns: timestamp corresponding to value, e.g. when value was measured, in nanoseconds
     """
     builder, source = _setup_builder(source_name)
-
     value = np.array(value)
 
-    if value.ndim != 0:
-        raise NotImplementedError("serialise_f142 does not yet support array types")
+    if value.ndim == 0:
+        _serialise_value(
+            builder, source, value, _serialise_string, _map_scalar_type_to_serialiser
+        )
+    elif value.ndim == 1:
+        _serialise_value(
+            builder,
+            source,
+            value,
+            _serialise_stringarray,
+            _map_array_type_to_serialiser,
+        )
+    else:
+        raise NotImplementedError("f142 only supports scalars or 1D array values")
 
+    return _complete_buffer(builder, timestamp_unix_ns)
+
+
+def _serialise_value(
+    builder: flatbuffers.Builder,
+    source: int,
+    value: Any,
+    string_serialiser: Callable,
+    serilisers_map: Dict,
+):
     # We can use a dictionary to map most numpy types to one of the types defined in the flatbuffer schema
     # but we have to handle strings separately as there are many subtypes
     if np.issubdtype(value.dtype, np.unicode_) or np.issubdtype(
         value.dtype, np.string_
     ):
-        _serialise_string(builder, value, source)
+        string_serialiser(builder, value, source)
     else:
         try:
-            _map_scalar_type_to_serialiser[value.dtype](builder, value, source)
+            serilisers_map[value.dtype](builder, value, source)
         except KeyError:
             # There are a few numpy types we don't try to handle, for example complex numbers
             raise NotImplementedError(
                 f"Cannot serialise data of type {value.dtype}, must use one of "
                 f"{list(_map_scalar_type_to_serialiser.keys()).append(np.unicode_)}"
             )
-
-    return _complete_buffer(builder, timestamp_unix_ns)
 
 
 _map_fb_enum_to_type = {
@@ -293,6 +350,15 @@ _map_fb_enum_to_type = {
 }
 
 
+def _decode_if_scalar_string(value: np.ndarray) -> Union[str, np.ndarray]:
+    if value.ndim == 0 and (
+        np.issubdtype(value.dtype, np.unicode_)
+        or np.issubdtype(value.dtype, np.string_)
+    ):
+        return value.item().decode()
+    return value
+
+
 def deserialise_f142(buffer: bytearray) -> NamedTuple:
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
@@ -305,12 +371,16 @@ def deserialise_f142(buffer: bytearray) -> NamedTuple:
     try:
         value = value_fb.ValueAsNumpy()
     except AttributeError:
-        value = np.array(value_fb.Value())
+        try:
+            value = np.array(value_fb.Value())
+        except TypeError:
+            # Must have an array of strings, which for some reason doesn't get a generated ValueAsNumpy method
+            # So we'll have to extract each element from the buffer manually and construct our own numpy array
+            value = np.array(
+                [str(value_fb.Value(n), "utf-8") for n in range(value_fb.ValueLength())]
+            )
 
-    if np.issubdtype(value.dtype, np.unicode_) or np.issubdtype(
-        value.dtype, np.string_
-    ):
-        value = value.item().decode()
+    value = _decode_if_scalar_string(value)
 
     timestamp = log_data.Timestamp()
 
