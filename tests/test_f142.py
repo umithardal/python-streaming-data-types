@@ -79,10 +79,8 @@ class TestSerialisationf142:
             "value": np.complex(3, 4),
             "timestamp_unix_ns": 1585332414000000000,
         }
-        try:
+        with pytest.raises(NotImplementedError):
             serialise_f142(**complex_log)
-        except NotImplementedError:
-            pass
 
     def test_if_buffer_has_wrong_id_then_throws(self):
         buf = serialise_f142(**self.original_entry)
