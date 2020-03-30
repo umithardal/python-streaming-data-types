@@ -97,7 +97,7 @@ class TestSerialisationf142:
         deserialised_tuple = deserialise_f142(buf)
 
         assert deserialised_tuple.source_name == array_log["source_name"]
-        assert np.array_equal(deserialised_tuple.value, array_log["value"])
+        assert np.allclose(deserialised_tuple.value, array_log["value"])
         assert deserialised_tuple.timestamp_unix_ns == array_log["timestamp_unix_ns"]
 
     def test_serialises_and_deserialises_numpy_array_strings_correctly(self):
