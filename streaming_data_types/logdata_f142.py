@@ -572,9 +572,10 @@ def deserialise_f142(buffer: bytearray) -> NamedTuple:
         value = value_fb.ValueAsNumpy()
     except AttributeError:
         try:
+            # Must be a scalar value then, so we'll get it like this
             value = np.array(value_fb.Value())
         except TypeError:
-            # Must have an array of strings, which for some reason doesn't get a generated ValueAsNumpy method
+            # In that case it is an array of strings, which for some reason doesn't get a generated ValueAsNumpy method
             # So we'll have to extract each element from the buffer manually and construct our own numpy array
             value = np.array(
                 [str(value_fb.Value(n), "utf-8") for n in range(value_fb.ValueLength())]
