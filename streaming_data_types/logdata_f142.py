@@ -7,11 +7,25 @@ from streaming_data_types.fbschemas.logdata_f142.UByte import (
     UByteAddValue,
     UByteEnd,
 )
+from streaming_data_types.fbschemas.logdata_f142.ArrayUByte import (
+    ArrayUByte,
+    ArrayUByteStart,
+    ArrayUByteAddValue,
+    ArrayUByteEnd,
+    ArrayUByteStartValueVector,
+)
 from streaming_data_types.fbschemas.logdata_f142.Byte import (
     Byte,
     ByteStart,
     ByteAddValue,
     ByteEnd,
+)
+from streaming_data_types.fbschemas.logdata_f142.ArrayByte import (
+    ArrayByte,
+    ArrayByteStart,
+    ArrayByteAddValue,
+    ArrayByteEnd,
+    ArrayByteStartValueVector,
 )
 from streaming_data_types.fbschemas.logdata_f142.UShort import (
     UShort,
@@ -19,11 +33,25 @@ from streaming_data_types.fbschemas.logdata_f142.UShort import (
     UShortAddValue,
     UShortEnd,
 )
+from streaming_data_types.fbschemas.logdata_f142.ArrayUShort import (
+    ArrayUShort,
+    ArrayUShortStart,
+    ArrayUShortAddValue,
+    ArrayUShortEnd,
+    ArrayUShortStartValueVector,
+)
 from streaming_data_types.fbschemas.logdata_f142.Short import (
     Short,
     ShortStart,
     ShortAddValue,
     ShortEnd,
+)
+from streaming_data_types.fbschemas.logdata_f142.ArrayShort import (
+    ArrayShort,
+    ArrayShortStart,
+    ArrayShortAddValue,
+    ArrayShortEnd,
+    ArrayShortStartValueVector,
 )
 from streaming_data_types.fbschemas.logdata_f142.UInt import (
     UInt,
@@ -31,11 +59,25 @@ from streaming_data_types.fbschemas.logdata_f142.UInt import (
     UIntAddValue,
     UIntEnd,
 )
+from streaming_data_types.fbschemas.logdata_f142.ArrayUInt import (
+    ArrayUInt,
+    ArrayUIntStart,
+    ArrayUIntAddValue,
+    ArrayUIntEnd,
+    ArrayUIntStartValueVector,
+)
 from streaming_data_types.fbschemas.logdata_f142.Int import (
     Int,
     IntStart,
     IntAddValue,
     IntEnd,
+)
+from streaming_data_types.fbschemas.logdata_f142.ArrayInt import (
+    ArrayInt,
+    ArrayIntStart,
+    ArrayIntAddValue,
+    ArrayIntEnd,
+    ArrayIntStartValueVector,
 )
 from streaming_data_types.fbschemas.logdata_f142.ULong import (
     ULong,
@@ -43,11 +85,25 @@ from streaming_data_types.fbschemas.logdata_f142.ULong import (
     ULongAddValue,
     ULongEnd,
 )
+from streaming_data_types.fbschemas.logdata_f142.ArrayULong import (
+    ArrayULong,
+    ArrayULongStart,
+    ArrayULongAddValue,
+    ArrayULongEnd,
+    ArrayULongStartValueVector,
+)
 from streaming_data_types.fbschemas.logdata_f142.Long import (
     Long,
     LongStart,
     LongAddValue,
     LongEnd,
+)
+from streaming_data_types.fbschemas.logdata_f142.ArrayLong import (
+    ArrayLong,
+    ArrayLongStart,
+    ArrayLongAddValue,
+    ArrayLongEnd,
+    ArrayLongStartValueVector,
 )
 from streaming_data_types.fbschemas.logdata_f142.Float import (
     Float,
@@ -55,11 +111,25 @@ from streaming_data_types.fbschemas.logdata_f142.Float import (
     FloatAddValue,
     FloatEnd,
 )
+from streaming_data_types.fbschemas.logdata_f142.ArrayFloat import (
+    ArrayFloat,
+    ArrayFloatStart,
+    ArrayFloatAddValue,
+    ArrayFloatEnd,
+    ArrayFloatStartValueVector,
+)
 from streaming_data_types.fbschemas.logdata_f142.Double import (
     Double,
     DoubleStart,
     DoubleAddValue,
     DoubleEnd,
+)
+from streaming_data_types.fbschemas.logdata_f142.ArrayDouble import (
+    ArrayDouble,
+    ArrayDoubleStart,
+    ArrayDoubleAddValue,
+    ArrayDoubleEnd,
+    ArrayDoubleStartValueVector,
 )
 from streaming_data_types.fbschemas.logdata_f142.String import (
     String,
@@ -74,16 +144,6 @@ from streaming_data_types.fbschemas.logdata_f142.ArrayString import (
     ArrayStringEnd,
     ArrayStringStartValueVector,
 )
-from streaming_data_types.fbschemas.logdata_f142.ArrayByte import ArrayByte
-from streaming_data_types.fbschemas.logdata_f142.ArrayUByte import ArrayUByte
-from streaming_data_types.fbschemas.logdata_f142.ArrayShort import ArrayShort
-from streaming_data_types.fbschemas.logdata_f142.ArrayUShort import ArrayUShort
-from streaming_data_types.fbschemas.logdata_f142.ArrayInt import ArrayInt
-from streaming_data_types.fbschemas.logdata_f142.ArrayUInt import ArrayUInt
-from streaming_data_types.fbschemas.logdata_f142.ArrayLong import ArrayLong
-from streaming_data_types.fbschemas.logdata_f142.ArrayULong import ArrayULong
-from streaming_data_types.fbschemas.logdata_f142.ArrayFloat import ArrayFloat
-from streaming_data_types.fbschemas.logdata_f142.ArrayDouble import ArrayDouble
 from streaming_data_types.utils import check_schema_identifier
 import numpy as np
 from typing import Any, Tuple, NamedTuple, Callable, Dict, Union
@@ -118,6 +178,20 @@ def _serialise_byte(builder: flatbuffers.Builder, data: np.ndarray, source: int)
     LogData.LogDataAddValueType(builder, Value.Byte)
 
 
+def _serialise_bytearray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+    ArrayByteStartValueVector(builder, len(data))
+    for single_value in reversed(data):
+        builder.PrependInt8(single_value)
+    array_offset = builder.EndVector(len(data))
+    ArrayByteStart(builder)
+    ArrayByteAddValue(builder, array_offset)
+    value_position = ArrayByteEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.ArrayByte)
+
+
 def _serialise_ubyte(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     UByteStart(builder)
     UByteAddValue(builder, data.item())
@@ -126,6 +200,20 @@ def _serialise_ubyte(builder: flatbuffers.Builder, data: np.ndarray, source: int
     LogData.LogDataAddSourceName(builder, source)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.UByte)
+
+
+def _serialise_ubytearray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+    ArrayUByteStartValueVector(builder, len(data))
+    for single_value in reversed(data):
+        builder.PrependUint8(single_value)
+    array_offset = builder.EndVector(len(data))
+    ArrayUByteStart(builder)
+    ArrayUByteAddValue(builder, array_offset)
+    value_position = ArrayUByteEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.ArrayUByte)
 
 
 def _serialise_short(builder: flatbuffers.Builder, data: np.ndarray, source: int):
@@ -138,6 +226,20 @@ def _serialise_short(builder: flatbuffers.Builder, data: np.ndarray, source: int
     LogData.LogDataAddValueType(builder, Value.Short)
 
 
+def _serialise_shortarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+    ArrayShortStartValueVector(builder, len(data))
+    for single_value in reversed(data):
+        builder.PrependInt16(single_value)
+    array_offset = builder.EndVector(len(data))
+    ArrayShortStart(builder)
+    ArrayShortAddValue(builder, array_offset)
+    value_position = ArrayShortEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.ArrayShort)
+
+
 def _serialise_ushort(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     UShortStart(builder)
     UShortAddValue(builder, data.item())
@@ -146,6 +248,20 @@ def _serialise_ushort(builder: flatbuffers.Builder, data: np.ndarray, source: in
     LogData.LogDataAddSourceName(builder, source)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.UShort)
+
+
+def _serialise_ushortarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+    ArrayUShortStartValueVector(builder, len(data))
+    for single_value in reversed(data):
+        builder.PrependUint16(single_value)
+    array_offset = builder.EndVector(len(data))
+    ArrayUShortStart(builder)
+    ArrayUShortAddValue(builder, array_offset)
+    value_position = ArrayUShortEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.ArrayUShort)
 
 
 def _serialise_int(builder: flatbuffers.Builder, data: np.ndarray, source: int):
@@ -158,6 +274,20 @@ def _serialise_int(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     LogData.LogDataAddValueType(builder, Value.Int)
 
 
+def _serialise_intarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+    ArrayIntStartValueVector(builder, len(data))
+    for single_value in reversed(data):
+        builder.PrependInt32(single_value)
+    array_offset = builder.EndVector(len(data))
+    ArrayIntStart(builder)
+    ArrayIntAddValue(builder, array_offset)
+    value_position = ArrayIntEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.ArrayInt)
+
+
 def _serialise_uint(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     UIntStart(builder)
     UIntAddValue(builder, data.item())
@@ -166,6 +296,20 @@ def _serialise_uint(builder: flatbuffers.Builder, data: np.ndarray, source: int)
     LogData.LogDataAddSourceName(builder, source)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.UInt)
+
+
+def _serialise_uintarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+    ArrayUIntStartValueVector(builder, len(data))
+    for single_value in reversed(data):
+        builder.PrependUint32(single_value)
+    array_offset = builder.EndVector(len(data))
+    ArrayUIntStart(builder)
+    ArrayUIntAddValue(builder, array_offset)
+    value_position = ArrayUIntEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.ArrayUInt)
 
 
 def _serialise_long(builder: flatbuffers.Builder, data: np.ndarray, source: int):
@@ -178,6 +322,20 @@ def _serialise_long(builder: flatbuffers.Builder, data: np.ndarray, source: int)
     LogData.LogDataAddValueType(builder, Value.Long)
 
 
+def _serialise_longarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+    ArrayLongStartValueVector(builder, len(data))
+    for single_value in reversed(data):
+        builder.PrependInt64(single_value)
+    array_offset = builder.EndVector(len(data))
+    ArrayLongStart(builder)
+    ArrayLongAddValue(builder, array_offset)
+    value_position = ArrayLongEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.ArrayLong)
+
+
 def _serialise_ulong(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     ULongStart(builder)
     ULongAddValue(builder, data.item())
@@ -186,6 +344,20 @@ def _serialise_ulong(builder: flatbuffers.Builder, data: np.ndarray, source: int
     LogData.LogDataAddSourceName(builder, source)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.ULong)
+
+
+def _serialise_ulongarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+    ArrayULongStartValueVector(builder, len(data))
+    for single_value in reversed(data):
+        builder.PrependUint64(single_value)
+    array_offset = builder.EndVector(len(data))
+    ArrayULongStart(builder)
+    ArrayULongAddValue(builder, array_offset)
+    value_position = ArrayULongEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.ArrayULong)
 
 
 def _serialise_float(builder: flatbuffers.Builder, data: np.ndarray, source: int):
@@ -198,6 +370,20 @@ def _serialise_float(builder: flatbuffers.Builder, data: np.ndarray, source: int
     LogData.LogDataAddValueType(builder, Value.Float)
 
 
+def _serialise_floatarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+    ArrayFloatStartValueVector(builder, len(data))
+    for single_value in reversed(data):
+        builder.PrependFloat32(single_value)
+    array_offset = builder.EndVector(len(data))
+    ArrayFloatStart(builder)
+    ArrayFloatAddValue(builder, array_offset)
+    value_position = ArrayFloatEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.ArrayFloat)
+
+
 def _serialise_double(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     DoubleStart(builder)
     DoubleAddValue(builder, data.item())
@@ -206,6 +392,20 @@ def _serialise_double(builder: flatbuffers.Builder, data: np.ndarray, source: in
     LogData.LogDataAddSourceName(builder, source)
     LogData.LogDataAddValue(builder, value_position)
     LogData.LogDataAddValueType(builder, Value.Double)
+
+
+def _serialise_doublearray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+    ArrayDoubleStartValueVector(builder, len(data))
+    for single_value in reversed(data):
+        builder.PrependFloat64(single_value)
+    array_offset = builder.EndVector(len(data))
+    ArrayDoubleStart(builder)
+    ArrayDoubleAddValue(builder, array_offset)
+    value_position = ArrayDoubleEnd(builder)
+    LogData.LogDataStart(builder)
+    LogData.LogDataAddSourceName(builder, source)
+    LogData.LogDataAddValue(builder, value_position)
+    LogData.LogDataAddValueType(builder, Value.ArrayDouble)
 
 
 def _serialise_string(builder: flatbuffers.Builder, data: np.ndarray, source: int):
@@ -252,18 +452,18 @@ _map_scalar_type_to_serialiser = {
 }
 
 _map_array_type_to_serialiser = {
-    # np.dtype("byte"): _serialise_bytearray,
-    # np.dtype("ubyte"): _serialise_ubytearray,
-    # np.dtype("int8"): _serialise_shortarray,
-    # np.dtype("int16"): _serialise_shortarray,
-    # np.dtype("int32"): _serialise_intarray,
-    # np.dtype("int64"): _serialise_longarray,
-    # np.dtype("uint8"): _serialise_ushortarray,
-    # np.dtype("uint16"): _serialise_ushortarray,
-    # np.dtype("uint32"): _serialise_uintarray,
-    # np.dtype("uint64"): _serialise_ulongarray,
-    # np.dtype("float32"): _serialise_floatarray,
-    # np.dtype("float64"): _serialise_doublearray,
+    np.dtype("byte"): _serialise_bytearray,
+    np.dtype("ubyte"): _serialise_ubytearray,
+    np.dtype("int8"): _serialise_shortarray,
+    np.dtype("int16"): _serialise_shortarray,
+    np.dtype("int32"): _serialise_intarray,
+    np.dtype("int64"): _serialise_longarray,
+    np.dtype("uint8"): _serialise_ushortarray,
+    np.dtype("uint16"): _serialise_ushortarray,
+    np.dtype("uint32"): _serialise_uintarray,
+    np.dtype("uint64"): _serialise_ulongarray,
+    np.dtype("float32"): _serialise_floatarray,
+    np.dtype("float64"): _serialise_doublearray,
 }
 
 

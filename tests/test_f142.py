@@ -87,6 +87,21 @@ class TestSerialisationf142:
         assert np.array_equal(deserialised_tuple.value, array_log["value"])
         assert deserialised_tuple.timestamp_unix_ns == array_log["timestamp_unix_ns"]
 
+    def test_serialises_and_deserialises_numpy_array_preserves_integer_type_correctly(
+        self,
+    ):
+        specified_type = np.uint8
+        array_log = {
+            "source_name": "some_source",
+            "value": np.array([1, 2, 3]).astype(specified_type),
+            "timestamp_unix_ns": 1585332414000000000,
+        }
+        buf = serialise_f142(**array_log)
+        deserialised_tuple = deserialise_f142(buf)
+
+        assert np.array_equal(deserialised_tuple.value, array_log["value"])
+        assert array_log["value"].dtype == specified_type
+
     def test_serialises_and_deserialises_numpy_array_floats_correctly(self):
         array_log = {
             "source_name": "some_source",
