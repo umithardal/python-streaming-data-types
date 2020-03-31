@@ -1,6 +1,8 @@
 import pytest
 import numpy as np
 from streaming_data_types.logdata_f142 import serialise_f142, deserialise_f142
+from streaming_data_types.fbschemas.logdata_f142.AlarmSeverity import AlarmSeverity
+from streaming_data_types.fbschemas.logdata_f142.AlarmStatus import AlarmStatus
 
 
 class TestSerialisationf142:
@@ -127,6 +129,32 @@ class TestSerialisationf142:
         assert deserialised_tuple.source_name == array_log["source_name"]
         assert np.array_equal(deserialised_tuple.value, array_log["value"])
         assert deserialised_tuple.timestamp_unix_ns == array_log["timestamp_unix_ns"]
+
+    def test_serialises_and_deserialises_epics_alarms_correctly(self):
+        float_log = {
+            "source_name": "some_source",
+            "value": 1.234,
+            "timestamp_unix_ns": 1585332414000000000,
+            "alarm_status": AlarmStatus.HIHI,
+            "alarm_severity": AlarmSeverity.MAJOR,
+        }
+        buf = serialise_f142(**float_log)
+        deserialised_tuple = deserialise_f142(buf)
+
+        assert deserialised_tuple.alarm_status == float_log["alarm_status"]
+        assert deserialised_tuple.alarm_severity == float_log["alarm_severity"]
+
+    def test_epics_alarms_default_to_no_change_when_not_provided_to_serialiser(self):
+        float_log = {
+            "source_name": "some_source",
+            "value": 1.234,
+            "timestamp_unix_ns": 1585332414000000000,
+        }
+        buf = serialise_f142(**float_log)
+        deserialised_tuple = deserialise_f142(buf)
+
+        assert deserialised_tuple.alarm_status == AlarmStatus.NO_CHANGE
+        assert deserialised_tuple.alarm_severity == AlarmSeverity.NO_CHANGE
 
     def test_raises_not_implemented_error_when_trying_to_serialise_numpy_complex_number_type(
         self,
