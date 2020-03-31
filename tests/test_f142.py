@@ -1,6 +1,8 @@
 import pytest
 import numpy as np
 from streaming_data_types.logdata_f142 import serialise_f142, deserialise_f142
+from streaming_data_types.fbschemas.logdata_f142.AlarmSeverity import AlarmSeverity
+from streaming_data_types.fbschemas.logdata_f142.AlarmStatus import AlarmStatus
 
 
 class TestSerialisationf142:
@@ -60,16 +62,98 @@ class TestSerialisationf142:
         assert deserialised_tuple.value == string_log["value"]
         assert deserialised_tuple.timestamp_unix_ns == string_log["timestamp_unix_ns"]
 
-    def test_raises_not_implemented_error_when_trying_to_serialise_array(self):
-        array_log = {
+    def test_serialises_and_deserialises_native_list_correctly(self):
+        list_log = {
             "source_name": "some_source",
             "value": [1, 2, 3],
             "timestamp_unix_ns": 1585332414000000000,
         }
-        try:
-            serialise_f142(**array_log)
-        except NotImplementedError:
-            pass
+        buf = serialise_f142(**list_log)
+        deserialised_tuple = deserialise_f142(buf)
+
+        assert deserialised_tuple.source_name == list_log["source_name"]
+        # Array values are output as numpy array
+        assert np.array_equal(deserialised_tuple.value, np.array(list_log["value"]))
+        assert deserialised_tuple.timestamp_unix_ns == list_log["timestamp_unix_ns"]
+
+    def test_serialises_and_deserialises_numpy_array_integers_correctly(self):
+        array_log = {
+            "source_name": "some_source",
+            "value": np.array([1, 2, 3]),
+            "timestamp_unix_ns": 1585332414000000000,
+        }
+        buf = serialise_f142(**array_log)
+        deserialised_tuple = deserialise_f142(buf)
+
+        assert deserialised_tuple.source_name == array_log["source_name"]
+        assert np.array_equal(deserialised_tuple.value, array_log["value"])
+        assert deserialised_tuple.timestamp_unix_ns == array_log["timestamp_unix_ns"]
+
+    def test_serialises_and_deserialises_numpy_array_preserves_integer_type_correctly(
+        self,
+    ):
+        array_log = {
+            "source_name": "some_source",
+            "value": np.array([1, 2, 3], dtype=np.uint16),
+            "timestamp_unix_ns": 1585332414000000000,
+        }
+        buf = serialise_f142(**array_log)
+        deserialised_tuple = deserialise_f142(buf)
+
+        assert np.array_equal(deserialised_tuple.value, array_log["value"])
+        assert deserialised_tuple.value.dtype == array_log["value"].dtype
+
+    def test_serialises_and_deserialises_numpy_array_floats_correctly(self):
+        array_log = {
+            "source_name": "some_source",
+            "value": np.array([1.1, 2.2, 3.3]),
+            "timestamp_unix_ns": 1585332414000000000,
+        }
+        buf = serialise_f142(**array_log)
+        deserialised_tuple = deserialise_f142(buf)
+
+        assert deserialised_tuple.source_name == array_log["source_name"]
+        assert np.allclose(deserialised_tuple.value, array_log["value"])
+        assert deserialised_tuple.timestamp_unix_ns == array_log["timestamp_unix_ns"]
+
+    def test_serialises_and_deserialises_numpy_array_strings_correctly(self):
+        array_log = {
+            "source_name": "some_source",
+            "value": np.array(["1", "2", "3"]),
+            "timestamp_unix_ns": 1585332414000000000,
+        }
+        buf = serialise_f142(**array_log)
+        deserialised_tuple = deserialise_f142(buf)
+
+        assert deserialised_tuple.source_name == array_log["source_name"]
+        assert np.array_equal(deserialised_tuple.value, array_log["value"])
+        assert deserialised_tuple.timestamp_unix_ns == array_log["timestamp_unix_ns"]
+
+    def test_serialises_and_deserialises_epics_alarms_correctly(self):
+        float_log = {
+            "source_name": "some_source",
+            "value": 1.234,
+            "timestamp_unix_ns": 1585332414000000000,
+            "alarm_status": AlarmStatus.HIHI,
+            "alarm_severity": AlarmSeverity.MAJOR,
+        }
+        buf = serialise_f142(**float_log)
+        deserialised_tuple = deserialise_f142(buf)
+
+        assert deserialised_tuple.alarm_status == float_log["alarm_status"]
+        assert deserialised_tuple.alarm_severity == float_log["alarm_severity"]
+
+    def test_epics_alarms_default_to_no_change_when_not_provided_to_serialiser(self):
+        float_log = {
+            "source_name": "some_source",
+            "value": 1.234,
+            "timestamp_unix_ns": 1585332414000000000,
+        }
+        buf = serialise_f142(**float_log)
+        deserialised_tuple = deserialise_f142(buf)
+
+        assert deserialised_tuple.alarm_status == AlarmStatus.NO_CHANGE
+        assert deserialised_tuple.alarm_severity == AlarmSeverity.NO_CHANGE
 
     def test_raises_not_implemented_error_when_trying_to_serialise_numpy_complex_number_type(
         self,
