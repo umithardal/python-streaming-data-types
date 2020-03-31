@@ -92,7 +92,7 @@ class TestSerialisationf142:
     def test_serialises_and_deserialises_numpy_array_preserves_integer_type_correctly(
         self,
     ):
-        specified_type = np.uint8
+        specified_type = np.uint16
         array_log = {
             "source_name": "some_source",
             "value": np.array([1, 2, 3]).astype(specified_type),
@@ -102,7 +102,7 @@ class TestSerialisationf142:
         deserialised_tuple = deserialise_f142(buf)
 
         assert np.array_equal(deserialised_tuple.value, array_log["value"])
-        assert array_log["value"].dtype == specified_type
+        assert deserialised_tuple.value.dtype == specified_type
 
     def test_serialises_and_deserialises_numpy_array_floats_correctly(self):
         array_log = {
