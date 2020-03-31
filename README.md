@@ -12,13 +12,14 @@ https://github.com/ess-dmsc/streaming-data-types
 |ns10|NICOS cache entry schema|Y|
 |pl72|Run start|N|
 |6s4t|Run stop|N|
+|f142|Log Data|?|
 
 ### hs00
 Schema for histogram data. It is one of the more complicated to use schemas.
 It takes a Python dictionary as its input; this dictionary needs to have correctly
 named fields.
 
-The input histogram data for serialistation and the output deserialisation data
+The input histogram data for serialisation and the output deserialisation data
 have the same dictionary "layout".
 Example for a 2-D histogram:
 ```json
