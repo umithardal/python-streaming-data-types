@@ -172,7 +172,6 @@ class TestSerialisationf142:
         # Manually hack the id
         buf = bytearray(buf)
         buf[4:8] = b"1234"
-        buf = bytes(buf)
 
         with pytest.raises(RuntimeError):
             deserialise_f142(buf)
