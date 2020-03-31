@@ -1,4 +1,4 @@
-from typing import Optional, NamedTuple
+from typing import Optional, NamedTuple, Union
 import flatbuffers
 from streaming_data_types.fbschemas.run_stop_6s4t import RunStop
 from streaming_data_types.utils import check_schema_identifier
@@ -12,7 +12,7 @@ def serialise_6s4t(
     run_name: str = "test_run",
     service_id: str = "",
     stop_time: Optional[int] = None,
-) -> bytearray:
+) -> bytes:
     builder = flatbuffers.Builder(136)
 
     if service_id is None:
@@ -37,10 +37,10 @@ def serialise_6s4t(
     # Generate the output and replace the file_identifier
     buffer = builder.Output()
     buffer[4:8] = FILE_IDENTIFIER
-    return buffer
+    return bytes(buffer)
 
 
-def deserialise_6s4t(buffer: bytearray) -> NamedTuple:
+def deserialise_6s4t(buffer: Union[bytearray, bytes]) -> NamedTuple:
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
     run_stop = RunStop.RunStop.GetRootAsRunStop(buffer, 0)

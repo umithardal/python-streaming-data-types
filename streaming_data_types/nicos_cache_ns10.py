@@ -28,7 +28,7 @@ def serialise_ns10(
     buffer = builder.Output()
     buffer[4:8] = FILE_IDENTIFIER
 
-    return buffer
+    return bytes(buffer)
 
 
 def deserialise_ns10(buffer):

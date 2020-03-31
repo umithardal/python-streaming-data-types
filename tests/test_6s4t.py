@@ -23,6 +23,7 @@ class TestSerialisation6s4t:
         buf = serialise_6s4t(**self.original_entry)
 
         # Manually hack the id
+        buf = bytearray(buf)
         buf[4:8] = b"1234"
 
         with pytest.raises(RuntimeError):

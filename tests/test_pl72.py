@@ -37,6 +37,7 @@ class TestSerialisationPl72:
         buf = serialise_pl72(**self.original_entry)
 
         # Manually hack the id
+        buf = bytearray(buf)
         buf[4:8] = b"1234"
 
         with pytest.raises(RuntimeError):
