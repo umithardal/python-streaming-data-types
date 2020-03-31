@@ -153,8 +153,20 @@ from collections import namedtuple
 FILE_IDENTIFIER = b"f142"
 
 
-def _complete_buffer(builder, timestamp_unix_ns: int) -> bytearray:
+def _complete_buffer(
+    builder,
+    timestamp_unix_ns: int,
+    alarm_status: Union[int, None] = None,
+    alarm_severity: Union[int, None] = None,
+) -> bytearray:
     LogData.LogDataAddTimestamp(builder, timestamp_unix_ns)
+
+    if alarm_status is not None:
+        LogData.LogDataAddStatus(builder, alarm_status)
+        # Only include severity if status was provided, it would be meaningless by itself
+        if alarm_severity is not None:
+            LogData.LogDataAddSeverity(builder, alarm_severity)
+
     log_msg = LogData.LogDataEnd(builder)
     builder.Finish(log_msg)
     buff = builder.Output()
@@ -468,7 +480,11 @@ _map_array_type_to_serialiser = {
 
 
 def serialise_f142(
-    value: Any, source_name: str, timestamp_unix_ns: int = 0
+    value: Any,
+    source_name: str,
+    timestamp_unix_ns: int = 0,
+    alarm_status: Union[int, None] = None,
+    alarm_severity: Union[int, None] = None,
 ) -> bytearray:
     """
     Serialise value and corresponding timestamp as an f142 Flatbuffer message.
@@ -478,6 +494,8 @@ def serialise_f142(
     :param value: only scalar value currently supported; if ndarray then ndim must be 0
     :param source_name: name of the data source
     :param timestamp_unix_ns: timestamp corresponding to value, e.g. when value was measured, in nanoseconds
+    :param alarm_status: EPICS alarm status, best to provide using enum-like class defined in logdata_f142.AlarmStatus
+    :param alarm_severity: EPICS alarm severity, best to provide using enum-like class defined in logdata_f142.AlarmSeverity
     """
     builder, source = _setup_builder(source_name)
     value = np.array(value)
@@ -497,7 +515,7 @@ def serialise_f142(
     else:
         raise NotImplementedError("f142 only supports scalars or 1D array values")
 
-    return _complete_buffer(builder, timestamp_unix_ns)
+    return _complete_buffer(builder, timestamp_unix_ns, alarm_status, alarm_severity)
 
 
 def _serialise_value(
@@ -585,5 +603,9 @@ def deserialise_f142(buffer: bytearray) -> NamedTuple:
 
     timestamp = log_data.Timestamp()
 
-    LogDataInfo = namedtuple("LogDataInfo", "value source_name timestamp_unix_ns")
-    return LogDataInfo(value, source_name.decode(), timestamp)
+    LogDataInfo = namedtuple(
+        "LogDataInfo", "value source_name timestamp_unix_ns alarm_status alarm_severity"
+    )
+    return LogDataInfo(
+        value, source_name.decode(), timestamp, log_data.Status(), log_data.Severity()
+    )
