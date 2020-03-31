@@ -523,7 +523,7 @@ def _serialise_value(
     source: int,
     value: Any,
     string_serialiser: Callable,
-    serilisers_map: Dict,
+    serialisers_map: Dict,
 ):
     # We can use a dictionary to map most numpy types to one of the types defined in the flatbuffer schema
     # but we have to handle strings separately as there are many subtypes
@@ -533,7 +533,7 @@ def _serialise_value(
         string_serialiser(builder, value, source)
     else:
         try:
-            serilisers_map[value.dtype](builder, value, source)
+            serialisers_map[value.dtype](builder, value, source)
         except KeyError:
             # There are a few numpy types we don't try to handle, for example complex numbers
             raise NotImplementedError(
