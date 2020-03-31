@@ -485,7 +485,7 @@ def serialise_f142(
     timestamp_unix_ns: int = 0,
     alarm_status: Union[int, None] = None,
     alarm_severity: Union[int, None] = None,
-) -> bytearray:
+) -> bytes:
     """
     Serialise value and corresponding timestamp as an f142 Flatbuffer message.
     Should automagically use a sensible type for value in the message, but if
@@ -515,7 +515,9 @@ def serialise_f142(
     else:
         raise NotImplementedError("f142 only supports scalars or 1D array values")
 
-    return _complete_buffer(builder, timestamp_unix_ns, alarm_status, alarm_severity)
+    return bytes(
+        _complete_buffer(builder, timestamp_unix_ns, alarm_status, alarm_severity)
+    )
 
 
 def _serialise_value(
@@ -577,7 +579,7 @@ def _decode_if_scalar_string(value: np.ndarray) -> Union[str, np.ndarray]:
     return value
 
 
-def deserialise_f142(buffer: bytearray) -> NamedTuple:
+def deserialise_f142(buffer: Union[bytearray, bytes]) -> NamedTuple:
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
     log_data = LogData.LogData.GetRootAsLogData(buffer, 0)

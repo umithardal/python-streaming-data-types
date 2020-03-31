@@ -35,7 +35,9 @@ class TestSerialisationNs10:
         buf = serialise_ns10(**original_entry)
 
         # Manually hack the id
+        buf = bytearray(buf)
         buf[4:8] = b"1234"
+        buf = bytes(buf)
 
         with pytest.raises(RuntimeError):
             deserialise_ns10(buf)

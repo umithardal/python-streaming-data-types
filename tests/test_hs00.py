@@ -49,7 +49,7 @@ class TestSerialisationHs00:
         )
 
     def test_serialises_and_deserialises_hs00_message_correctly_for_minimal_1d_data(
-        self
+        self,
     ):
         """
         Round-trip to check what we serialise is what we get back.
@@ -143,7 +143,9 @@ class TestSerialisationHs00:
         buf = serialise_hs00(original_hist)
 
         # Manually hack the id
+        buf = bytearray(buf)
         buf[4:8] = b"1234"
+        buf = bytes(buf)
 
         with pytest.raises(RuntimeError):
             deserialise_hs00(buf)
