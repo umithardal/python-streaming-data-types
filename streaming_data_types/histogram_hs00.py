@@ -170,10 +170,7 @@ def serialise_hs00(histogram):
 
     # Build the data
     data_len = reduce(operator.mul, histogram["current_shape"], 1)
-    if isinstance(histogram["data"], numpy.ndarray):
-        flattened_data = histogram["data"].flatten()
-    else:
-        flattened_data = numpy.asarray(histogram["data"]).flatten()
+    flattened_data = numpy.asarray(histogram["data"]).flatten()
 
     if numpy.issubdtype(flattened_data[0], numpy.int64):
         data_type = Array.ArrayULong
