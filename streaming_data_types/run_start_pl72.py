@@ -1,5 +1,4 @@
 import time
-from typing import Optional, NamedTuple, Union
 import flatbuffers
 from streaming_data_types.fbschemas.run_start_pl72 import RunStart
 from streaming_data_types.utils import check_schema_identifier
@@ -9,16 +8,16 @@ FILE_IDENTIFIER = b"pl72"
 
 
 def serialise_pl72(
-    job_id: str,
-    filename: str,
-    start_time: Optional[int] = None,
-    stop_time: Optional[int] = None,
-    run_name: str = "test_run",
-    nexus_structure: str = "{}",
-    service_id: str = "",
-    instrument_name: str = "TEST",
-    broker: str = "localhost:9092",
-) -> bytes:
+    job_id,
+    filename,
+    start_time=None,
+    stop_time=None,
+    run_name="test_run",
+    nexus_structure="{}",
+    service_id="",
+    instrument_name="TEST",
+    broker="localhost:9092",
+):
     builder = flatbuffers.Builder(136)
 
     if start_time is None:
@@ -58,7 +57,7 @@ def serialise_pl72(
     return bytes(buffer)
 
 
-def deserialise_pl72(buffer: Union[bytearray, bytes]) -> NamedTuple:
+def deserialise_pl72(buffer):
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
     run_start = RunStart.RunStart.GetRootAsRunStart(buffer, 0)

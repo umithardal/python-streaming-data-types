@@ -1,4 +1,5 @@
 import flatbuffers
+import six
 from streaming_data_types.fbschemas.logdata_f142 import LogData
 from streaming_data_types.fbschemas.logdata_f142.Value import Value
 from streaming_data_types.fbschemas.logdata_f142.UByte import (
@@ -146,7 +147,6 @@ from streaming_data_types.fbschemas.logdata_f142.ArrayString import (
 )
 from streaming_data_types.utils import check_schema_identifier
 import numpy as np
-from typing import Any, Tuple, NamedTuple, Callable, Dict, Union
 from collections import namedtuple
 
 
@@ -154,11 +154,8 @@ FILE_IDENTIFIER = b"f142"
 
 
 def _complete_buffer(
-    builder,
-    timestamp_unix_ns: int,
-    alarm_status: Union[int, None] = None,
-    alarm_severity: Union[int, None] = None,
-) -> bytearray:
+    builder, timestamp_unix_ns, alarm_status=None, alarm_severity=None
+):
     LogData.LogDataAddTimestamp(builder, timestamp_unix_ns)
 
     if alarm_status is not None:
@@ -174,13 +171,13 @@ def _complete_buffer(
     return buff
 
 
-def _setup_builder(source_name: str) -> Tuple[flatbuffers.Builder, int]:
+def _setup_builder(source_name):
     builder = flatbuffers.Builder(1024)
     source = builder.CreateString(source_name)
     return builder, source
 
 
-def _serialise_byte(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_byte(builder, data, source):
     ByteStart(builder)
     ByteAddValue(builder, data.item())
     value_position = ByteEnd(builder)
@@ -190,7 +187,7 @@ def _serialise_byte(builder: flatbuffers.Builder, data: np.ndarray, source: int)
     LogData.LogDataAddValueType(builder, Value.Byte)
 
 
-def _serialise_bytearray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_bytearray(builder, data, source):
     ArrayByteStartValueVector(builder, len(data))
     for single_value in reversed(data):
         builder.PrependInt8(single_value)
@@ -204,7 +201,7 @@ def _serialise_bytearray(builder: flatbuffers.Builder, data: np.ndarray, source:
     LogData.LogDataAddValueType(builder, Value.ArrayByte)
 
 
-def _serialise_ubyte(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_ubyte(builder, data, source):
     UByteStart(builder)
     UByteAddValue(builder, data.item())
     value_position = UByteEnd(builder)
@@ -214,7 +211,7 @@ def _serialise_ubyte(builder: flatbuffers.Builder, data: np.ndarray, source: int
     LogData.LogDataAddValueType(builder, Value.UByte)
 
 
-def _serialise_ubytearray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_ubytearray(builder, data, source):
     ArrayUByteStartValueVector(builder, len(data))
     for single_value in reversed(data):
         builder.PrependUint8(single_value)
@@ -228,7 +225,7 @@ def _serialise_ubytearray(builder: flatbuffers.Builder, data: np.ndarray, source
     LogData.LogDataAddValueType(builder, Value.ArrayUByte)
 
 
-def _serialise_short(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_short(builder, data, source):
     ShortStart(builder)
     ShortAddValue(builder, data.item())
     value_position = ShortEnd(builder)
@@ -238,7 +235,7 @@ def _serialise_short(builder: flatbuffers.Builder, data: np.ndarray, source: int
     LogData.LogDataAddValueType(builder, Value.Short)
 
 
-def _serialise_shortarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_shortarray(builder, data, source):
     ArrayShortStartValueVector(builder, len(data))
     for single_value in reversed(data):
         builder.PrependInt16(single_value)
@@ -252,7 +249,7 @@ def _serialise_shortarray(builder: flatbuffers.Builder, data: np.ndarray, source
     LogData.LogDataAddValueType(builder, Value.ArrayShort)
 
 
-def _serialise_ushort(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_ushort(builder, data, source):
     UShortStart(builder)
     UShortAddValue(builder, data.item())
     value_position = UShortEnd(builder)
@@ -262,7 +259,7 @@ def _serialise_ushort(builder: flatbuffers.Builder, data: np.ndarray, source: in
     LogData.LogDataAddValueType(builder, Value.UShort)
 
 
-def _serialise_ushortarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_ushortarray(builder, data, source):
     ArrayUShortStartValueVector(builder, len(data))
     for single_value in reversed(data):
         builder.PrependUint16(single_value)
@@ -276,7 +273,7 @@ def _serialise_ushortarray(builder: flatbuffers.Builder, data: np.ndarray, sourc
     LogData.LogDataAddValueType(builder, Value.ArrayUShort)
 
 
-def _serialise_int(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_int(builder, data, source):
     IntStart(builder)
     IntAddValue(builder, data.item())
     value_position = IntEnd(builder)
@@ -286,7 +283,7 @@ def _serialise_int(builder: flatbuffers.Builder, data: np.ndarray, source: int):
     LogData.LogDataAddValueType(builder, Value.Int)
 
 
-def _serialise_intarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_intarray(builder, data, source):
     ArrayIntStartValueVector(builder, len(data))
     for single_value in reversed(data):
         builder.PrependInt32(single_value)
@@ -300,7 +297,7 @@ def _serialise_intarray(builder: flatbuffers.Builder, data: np.ndarray, source: 
     LogData.LogDataAddValueType(builder, Value.ArrayInt)
 
 
-def _serialise_uint(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_uint(builder, data, source):
     UIntStart(builder)
     UIntAddValue(builder, data.item())
     value_position = UIntEnd(builder)
@@ -310,7 +307,7 @@ def _serialise_uint(builder: flatbuffers.Builder, data: np.ndarray, source: int)
     LogData.LogDataAddValueType(builder, Value.UInt)
 
 
-def _serialise_uintarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_uintarray(builder, data, source):
     ArrayUIntStartValueVector(builder, len(data))
     for single_value in reversed(data):
         builder.PrependUint32(single_value)
@@ -324,7 +321,7 @@ def _serialise_uintarray(builder: flatbuffers.Builder, data: np.ndarray, source:
     LogData.LogDataAddValueType(builder, Value.ArrayUInt)
 
 
-def _serialise_long(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_long(builder, data, source):
     LongStart(builder)
     LongAddValue(builder, data.item())
     value_position = LongEnd(builder)
@@ -334,7 +331,7 @@ def _serialise_long(builder: flatbuffers.Builder, data: np.ndarray, source: int)
     LogData.LogDataAddValueType(builder, Value.Long)
 
 
-def _serialise_longarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_longarray(builder, data, source):
     ArrayLongStartValueVector(builder, len(data))
     for single_value in reversed(data):
         builder.PrependInt64(single_value)
@@ -348,7 +345,7 @@ def _serialise_longarray(builder: flatbuffers.Builder, data: np.ndarray, source:
     LogData.LogDataAddValueType(builder, Value.ArrayLong)
 
 
-def _serialise_ulong(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_ulong(builder, data, source):
     ULongStart(builder)
     ULongAddValue(builder, data.item())
     value_position = ULongEnd(builder)
@@ -358,7 +355,7 @@ def _serialise_ulong(builder: flatbuffers.Builder, data: np.ndarray, source: int
     LogData.LogDataAddValueType(builder, Value.ULong)
 
 
-def _serialise_ulongarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_ulongarray(builder, data, source):
     ArrayULongStartValueVector(builder, len(data))
     for single_value in reversed(data):
         builder.PrependUint64(single_value)
@@ -372,7 +369,7 @@ def _serialise_ulongarray(builder: flatbuffers.Builder, data: np.ndarray, source
     LogData.LogDataAddValueType(builder, Value.ArrayULong)
 
 
-def _serialise_float(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_float(builder, data, source):
     FloatStart(builder)
     FloatAddValue(builder, data.item())
     value_position = FloatEnd(builder)
@@ -382,7 +379,7 @@ def _serialise_float(builder: flatbuffers.Builder, data: np.ndarray, source: int
     LogData.LogDataAddValueType(builder, Value.Float)
 
 
-def _serialise_floatarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_floatarray(builder, data, source):
     ArrayFloatStartValueVector(builder, len(data))
     for single_value in reversed(data):
         builder.PrependFloat32(single_value)
@@ -396,7 +393,7 @@ def _serialise_floatarray(builder: flatbuffers.Builder, data: np.ndarray, source
     LogData.LogDataAddValueType(builder, Value.ArrayFloat)
 
 
-def _serialise_double(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_double(builder, data, source):
     DoubleStart(builder)
     DoubleAddValue(builder, data.item())
     value_position = DoubleEnd(builder)
@@ -406,7 +403,7 @@ def _serialise_double(builder: flatbuffers.Builder, data: np.ndarray, source: in
     LogData.LogDataAddValueType(builder, Value.Double)
 
 
-def _serialise_doublearray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_doublearray(builder, data, source):
     ArrayDoubleStartValueVector(builder, len(data))
     for single_value in reversed(data):
         builder.PrependFloat64(single_value)
@@ -420,7 +417,7 @@ def _serialise_doublearray(builder: flatbuffers.Builder, data: np.ndarray, sourc
     LogData.LogDataAddValueType(builder, Value.ArrayDouble)
 
 
-def _serialise_string(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_string(builder, data, source):
     string_offset = builder.CreateString(data.item())
     StringStart(builder)
     StringAddValue(builder, string_offset)
@@ -431,7 +428,7 @@ def _serialise_string(builder: flatbuffers.Builder, data: np.ndarray, source: in
     LogData.LogDataAddValueType(builder, Value.String)
 
 
-def _serialise_stringarray(builder: flatbuffers.Builder, data: np.ndarray, source: int):
+def _serialise_stringarray(builder, data, source):
     string_offsets = [
         builder.CreateString(string_item) for string_item in reversed(data)
     ]
@@ -480,12 +477,8 @@ _map_array_type_to_serialiser = {
 
 
 def serialise_f142(
-    value: Any,
-    source_name: str,
-    timestamp_unix_ns: int = 0,
-    alarm_status: Union[int, None] = None,
-    alarm_severity: Union[int, None] = None,
-) -> bytes:
+    value, source_name, timestamp_unix_ns=0, alarm_status=None, alarm_severity=None
+):
     """
     Serialise value and corresponding timestamp as an f142 Flatbuffer message.
     Should automagically use a sensible type for value in the message, but if
@@ -520,13 +513,7 @@ def serialise_f142(
     )
 
 
-def _serialise_value(
-    builder: flatbuffers.Builder,
-    source: int,
-    value: Any,
-    string_serialiser: Callable,
-    serialisers_map: Dict,
-):
+def _serialise_value(builder, source, value, string_serialiser, serialisers_map):
     # We can use a dictionary to map most numpy types to one of the types defined in the flatbuffer schema
     # but we have to handle strings separately as there are many subtypes
     if np.issubdtype(value.dtype, np.unicode_) or np.issubdtype(
@@ -539,8 +526,7 @@ def _serialise_value(
         except KeyError:
             # There are a few numpy types we don't try to handle, for example complex numbers
             raise NotImplementedError(
-                f"Cannot serialise data of type {value.dtype}, must use one of "
-                f"{list(_map_scalar_type_to_serialiser.keys()).append(np.unicode_)}"
+                "Cannot serialise data of type {}".format(value.dtype)
             )
 
 
@@ -570,7 +556,7 @@ _map_fb_enum_to_type = {
 }
 
 
-def _decode_if_scalar_string(value: np.ndarray) -> Union[str, np.ndarray]:
+def _decode_if_scalar_string(value):
     if value.ndim == 0 and (
         np.issubdtype(value.dtype, np.unicode_)
         or np.issubdtype(value.dtype, np.string_)
@@ -579,7 +565,7 @@ def _decode_if_scalar_string(value: np.ndarray) -> Union[str, np.ndarray]:
     return value
 
 
-def deserialise_f142(buffer: Union[bytearray, bytes]) -> NamedTuple:
+def deserialise_f142(buffer):
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
     log_data = LogData.LogData.GetRootAsLogData(buffer, 0)
@@ -597,9 +583,17 @@ def deserialise_f142(buffer: Union[bytearray, bytes]) -> NamedTuple:
         except TypeError:
             # In that case it is an array of strings, which for some reason doesn't get a generated ValueAsNumpy method
             # So we'll have to extract each element from the buffer manually and construct our own numpy array
-            value = np.array(
-                [str(value_fb.Value(n), "utf-8") for n in range(value_fb.ValueLength())]
-            )
+            if six.PY2:
+                value = np.array(
+                    [value_fb.Value(n) for n in range(value_fb.ValueLength())]
+                )
+            else:
+                value = np.array(
+                    [
+                        str(value_fb.Value(n), "utf-8")
+                        for n in range(value_fb.ValueLength())
+                    ]
+                )
 
     value = _decode_if_scalar_string(value)
 
