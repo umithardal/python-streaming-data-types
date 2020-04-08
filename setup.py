@@ -10,7 +10,7 @@ try:
     with open(os.path.join(here, "README.md"), encoding="utf-8") as f:
         LONG_DESCRIPTION = "\n" + f.read()
 except Exception as error:
-    print(error)
+    print("COULD NOT GET LONG DESC: {}".format(error))
     LONG_DESCRIPTION = DESCRIPTION
 
 setup(
@@ -23,6 +23,7 @@ setup(
     url="https://github.com/ess-dmsc/python-streaming-data-types",
     license="BSD 2-Clause License",
     packages=find_packages(exclude="tests"),
+    python_requires=">=3.6.0",
     install_requires=["flatbuffers", "numpy"],
-    extras_requires={"dev": ["flake8", "pre-commit", "pytest", "tox"]},
+    extras_require={"dev": ["flake8", "pre-commit", "pytest", "tox"]},
 )
