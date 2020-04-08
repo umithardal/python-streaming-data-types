@@ -14,7 +14,7 @@ except Exception as error:
     LONG_DESCRIPTION = DESCRIPTION
 
 setup(
-    name="streaming_data_types",
+    name="ess_streaming_data_types",
     version="0.4.0",
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
