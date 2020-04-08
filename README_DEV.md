@@ -1,11 +1,6 @@
 # Python Streaming Data Types
 ## For developers
 
-### Building the package
-```
-python setup.py sdist bdist_wheel
-```
-
 ### Install the commit hooks (important)
 There are commit hooks for Black and Flake8.
 
@@ -30,3 +25,22 @@ From the top directory:
 tox
 ```
 
+### Building the package and deploying it
+```
+python setup.py sdist bdist_wheel
+```
+
+Check dist files:
+```
+twine check dist/*
+```
+
+Push to test.pypi.org for testing:
+```
+twine upload --repository-url https://test.pypi.org/legacy/ dist/*  
+```
+
+After testing installing from test.pypi.org:
+```
+twine upload dist/*
+```

@@ -18,6 +18,7 @@ setup(
     version="0.4.0",
     description=DESCRIPTION,
     long_description=LONG_DESCRIPTION,
+    long_description_content_type="text/markdown",
     author="ScreamingUdder",
     url="https://github.com/ess-dmsc/python-streaming-data-types",
     license="BSD 2-Clause License",
