@@ -72,7 +72,17 @@ def deserialise_pl72(buffer: Union[bytearray, bytes]) -> NamedTuple:
 
     RunStartInfo = namedtuple(
         "RunStartInfo",
-        "job_id filename start_time stop_time run_name nexus_structure service_id instrument_name broker",
+        (
+            "job_id",
+            "filename",
+            "start_time",
+            "stop_time",
+            "run_name",
+            "nexus_structure",
+            "service_id",
+            "instrument_name",
+            "broker",
+        ),
     )
     return RunStartInfo(
         job_id.decode(),

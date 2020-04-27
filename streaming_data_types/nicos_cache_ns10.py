@@ -42,6 +42,6 @@ def deserialise_ns10(buffer):
     expired = entry.Expired() if entry.Expired() else False
     value = entry.Value() if entry.Value() else b""
 
-    Entry = namedtuple("Entry", "key time_stamp ttl expired value")
+    Entry = namedtuple("Entry", ("key", "time_stamp", "ttl", "expired", "value"))
 
     return Entry(key.decode().strip(), time_stamp, ttl, expired, value.decode())

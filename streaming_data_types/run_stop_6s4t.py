@@ -49,7 +49,9 @@ def deserialise_6s4t(buffer: Union[bytearray, bytes]) -> NamedTuple:
     run_name = run_stop.RunName() if run_stop.RunName() else b""
     stop_time = run_stop.StopTime()
 
-    RunStopInfo = namedtuple("RunStopInfo", "stop_time run_name job_id service_id")
+    RunStopInfo = namedtuple(
+        "RunStopInfo", ("stop_time", "run_name", "job_id", "service_id")
+    )
     return RunStopInfo(
         stop_time, run_name.decode(), job_id.decode(), service_id.decode()
     )
