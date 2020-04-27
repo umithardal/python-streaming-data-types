@@ -606,7 +606,8 @@ def deserialise_f142(buffer: Union[bytearray, bytes]) -> NamedTuple:
     timestamp = log_data.Timestamp()
 
     LogDataInfo = namedtuple(
-        "LogDataInfo", "value source_name timestamp_unix_ns alarm_status alarm_severity"
+        "LogDataInfo",
+        ("value", "source_name", "timestamp_unix_ns", "alarm_status", "alarm_severity"),
     )
     return LogDataInfo(
         value, source_name.decode(), timestamp, log_data.Status(), log_data.Severity()

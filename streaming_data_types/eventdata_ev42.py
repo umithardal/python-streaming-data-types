@@ -33,7 +33,14 @@ def deserialise_ev42(buffer):
 
     EventData = namedtuple(
         "EventData",
-        "source_name message_id pulse_time time_of_flight detector_id specific_data",
+        (
+            "source_name",
+            "message_id",
+            "pulse_time",
+            "time_of_flight",
+            "detector_id",
+            "specific_data",
+        ),
     )
 
     return EventData(
