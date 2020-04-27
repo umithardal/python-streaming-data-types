@@ -9,6 +9,19 @@ from streaming_data_types.utils import check_schema_identifier
 FILE_IDENTIFIER = b"ev42"
 
 
+EventData = namedtuple(
+    "EventData",
+    (
+        "source_name",
+        "message_id",
+        "pulse_time",
+        "time_of_flight",
+        "detector_id",
+        "specific_data",
+    ),
+)
+
+
 def deserialise_ev42(buffer):
     """
     Deserialise FlatBuffer ev42.
@@ -30,18 +43,6 @@ def deserialise_ev42(buffer):
             "run_state": isis_buf.RunState(),
             "proton_charge": isis_buf.ProtonCharge(),
         }
-
-    EventData = namedtuple(
-        "EventData",
-        (
-            "source_name",
-            "message_id",
-            "pulse_time",
-            "time_of_flight",
-            "detector_id",
-            "specific_data",
-        ),
-    )
 
     return EventData(
         event.SourceName().decode("utf-8"),
