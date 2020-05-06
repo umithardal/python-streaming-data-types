@@ -43,13 +43,13 @@ def deserialise_x5f2(buffer):
 
 
 def serialise_x5f2(
-        software_name,
-        software_version,
-        service_id,
-        host_name,
-        process_id,
-        update_interval,
-        status_json):
+        software_name: str,
+        software_version: str,
+        service_id: str,
+        host_name: str,
+        process_id: int,
+        update_interval: int,
+        status_json: str):
     """
     Serialise status message as an x5f2 FlatBuffers message.
 
