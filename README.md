@@ -14,6 +14,7 @@ https://github.com/ess-dmsc/streaming-data-types
 |6s4t|Run stop|N|
 |f142|Log Data|Y|
 |ev42|Event Data|Y|
+|x5f2|Status messages|Y|
 
 ### hs00
 Schema for histogram data. It is one of the more complicated to use schemas.
