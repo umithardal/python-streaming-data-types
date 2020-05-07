@@ -35,7 +35,7 @@ class TestEncoder(object):
             "software_name" : "nicos/test",
             "software_version" : "1.0.0",
             "service_id" : "1a2b3c",
-            "host_name" : "//localhost",
+            "host_name" : "localhost",
             "process_id" : 1234,
             "update_interval": 0,
             "status_json" : '{"content" : "log_or_status_message"}',
