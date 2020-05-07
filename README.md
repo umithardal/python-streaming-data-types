@@ -6,7 +6,7 @@ https://github.com/ess-dmsc/streaming-data-types
 
 ## FlatBuffer Schemas
 
-|name|description|verifiable|
+|name|description|verifiable*|
 |----|-----------|----------|
 |hs00|Histogram schema|Y|
 |ns10|NICOS cache entry schema|Y|
@@ -14,6 +14,8 @@ https://github.com/ess-dmsc/streaming-data-types
 |6s4t|Run stop|N|
 |f142|Log Data|Y|
 |ev42|Event Data|Y|
+
+\* whether it passes verification via the C++ FlatBuffers library.
 
 ### hs00
 Schema for histogram data. It is one of the more complicated to use schemas.
