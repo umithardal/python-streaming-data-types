@@ -11,7 +11,7 @@ class TestEncoder(object):
 
         original_entry = {
             "software_name" : "nicos/test",
-            "software_version" : "1.0",
+            "software_version" : "1.0.0",
             "service_id" : "1a2b3c",
             "host_name" : "//localhost",
             "process_id" : 1234,
