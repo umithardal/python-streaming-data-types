@@ -47,6 +47,10 @@ Push to test.pypi.org for testing:
 ```
 twine upload --repository-url https://test.pypi.org/legacy/ dist/*  
 ```
+The wheel should be downloaded, but you unfortunately flatbuffers is not on TestPyPi so the following error is expected:
+```
+ERROR: Could not find a version that satisfies the requirement flatbuffers
+```
 
 After testing installing from test.pypi.org works, push to PyPI:
 ```
