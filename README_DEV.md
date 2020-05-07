@@ -25,7 +25,15 @@ From the top directory:
 tox
 ```
 
-### Building the package and deploying it
+### Building the package locally and deploying it to PyPI
+**First update the version number in setup.py.**
+
+Delete any old builds you may have:
+```
+rm -rf build dist
+```
+
+Build it locally:
 ```
 python setup.py sdist bdist_wheel
 ```
@@ -40,7 +48,7 @@ Push to test.pypi.org for testing:
 twine upload --repository-url https://test.pypi.org/legacy/ dist/*  
 ```
 
-After testing installing from test.pypi.org:
+After testing installing from test.pypi.org works, push to PyPI:
 ```
 twine upload dist/*
 ```
