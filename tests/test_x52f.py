@@ -33,7 +33,7 @@ class TestEncoder(object):
     def test_if_buffer_has_wrong_id_then_throws(self):
         original_entry = {
             "software_name" : "nicos/test",
-            "software_version" : "1.0",
+            "software_version" : "1.0.0",
             "service_id" : "1a2b3c",
             "host_name" : "//localhost",
             "process_id" : 1234,
