@@ -15,6 +15,7 @@ https://github.com/ess-dmsc/streaming-data-types
 |f142|Log Data|Y|
 |ev42|Event Data|Y|
 |x5f2|Status messages|Y|
+|tdct|Timestamps|Y|
 
 \* whether it passes verification via the C++ FlatBuffers library.
 
