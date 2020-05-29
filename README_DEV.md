@@ -17,6 +17,10 @@ pre-commit run --all-files
 ```
 This command can also be used to run the hooks manually.
 
+### Adding new schemas checklist (important)
+* Add unit-tests (see existing tests for an example)
+* Update fbschemas.__init__ to include the new serialiser and deserialiser
+
 ### Tox
 Tox allows the unit tests to be run against multiple versions of Python.
 See the tox.ini file for which versions are supported.
