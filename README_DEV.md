@@ -32,6 +32,14 @@ tox
 ### Building the package locally and deploying it to PyPI
 **First update the version number in setup.py and push the update to the repository.**
 
+#### Requirements
+* A [PyPi](https://pypi.org/) account
+* A [TestPyPi](https://test.pypi.org/) account (this is separate to the PyPi account)
+* Permission to push to the ess-streaming-data-types project on TestPyPi and PyPi
+* Installed all requirements in `requirements-dev.txt`
+
+#### Steps
+
 Delete any old builds you may have:
 ```
 rm -rf build dist
