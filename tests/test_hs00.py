@@ -150,7 +150,7 @@ class TestSerialisationHs00:
             deserialise_hs00(buf)
 
     def test_serialises_and_deserialises_hs00_message_correctly_for_int_array_data(
-        self
+        self,
     ):
         """
         Round-trip to check what we serialise is what we get back.
@@ -190,7 +190,7 @@ class TestSerialisationHs00:
         )
 
     def test_serialises_and_deserialises_hs00_message_correctly_when_float_input_is_not_ndarray(
-        self
+        self,
     ):
         """
         Round-trip to check what we serialise is what we get back.
@@ -238,7 +238,7 @@ class TestSerialisationHs00:
         )
 
     def test_serialises_and_deserialises_hs00_message_correctly_when_int_input_is_not_ndarray(
-        self
+        self,
     ):
         """
         Round-trip to check what we serialise is what we get back.
