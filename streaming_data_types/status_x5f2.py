@@ -49,7 +49,7 @@ def serialise_x5f2(
         host_name: str,
         process_id: int,
         update_interval: int,
-        status_json: str):
+        status_json: str) -> bytes:
     """
     Serialise status message as an x5f2 FlatBuffers message.
 
@@ -88,4 +88,4 @@ def serialise_x5f2(
     # Generate the output and replace the file_identifier
     buffer = builder.Output()
     buffer[4:8] = FILE_IDENTIFIER
-    return buffer
+    return bytes(buffer)
