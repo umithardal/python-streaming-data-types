@@ -146,7 +146,7 @@ from streaming_data_types.fbschemas.logdata_f142.ArrayString import (
 )
 from streaming_data_types.utils import check_schema_identifier
 import numpy as np
-from typing import Any, Tuple, NamedTuple, Callable, Dict, Union
+from typing import Any, Tuple, Callable, Dict, Union
 from collections import namedtuple
 
 
@@ -570,6 +570,12 @@ _map_fb_enum_to_type = {
 }
 
 
+LogDataInfo = namedtuple(
+    "LogDataInfo",
+    ("value", "source_name", "timestamp_unix_ns", "alarm_status", "alarm_severity"),
+)
+
+
 def _decode_if_scalar_string(value: np.ndarray) -> Union[str, np.ndarray]:
     if value.ndim == 0 and (
         np.issubdtype(value.dtype, np.unicode_)
@@ -579,7 +585,7 @@ def _decode_if_scalar_string(value: np.ndarray) -> Union[str, np.ndarray]:
     return value
 
 
-def deserialise_f142(buffer: Union[bytearray, bytes]) -> NamedTuple:
+def deserialise_f142(buffer: Union[bytearray, bytes]) -> LogDataInfo:
     check_schema_identifier(buffer, FILE_IDENTIFIER)
 
     log_data = LogData.LogData.GetRootAsLogData(buffer, 0)
@@ -605,10 +611,6 @@ def deserialise_f142(buffer: Union[bytearray, bytes]) -> NamedTuple:
 
     timestamp = log_data.Timestamp()
 
-    LogDataInfo = namedtuple(
-        "LogDataInfo",
-        ("value", "source_name", "timestamp_unix_ns", "alarm_status", "alarm_severity"),
-    )
     return LogDataInfo(
         value, source_name.decode(), timestamp, log_data.Status(), log_data.Severity()
     )
