@@ -6,7 +6,7 @@ from streaming_data_types.epics_connection_info_ep00 import (
 )
 
 
-class TestSerialisation6s4t:
+class TestSerialisationEp00:
     original_entry = {
         "timestamp_ns": 1593620746000000000,
         "event_type": EventType.EventType.DISCONNECTED,
