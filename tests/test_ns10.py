@@ -1,5 +1,6 @@
 import pytest
 from streaming_data_types.nicos_cache_ns10 import serialise_ns10, deserialise_ns10
+from streaming_data_types import SERIALISERS, DESERIALISERS
 
 
 class TestSerialisationNs10:
@@ -40,3 +41,7 @@ class TestSerialisationNs10:
 
         with pytest.raises(RuntimeError):
             deserialise_ns10(buf)
+
+    def test_schema_type_is_in_global_serialisers_list(self):
+        assert "ns10" in SERIALISERS
+        assert "ns10" in DESERIALISERS

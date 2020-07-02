@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from streaming_data_types.histogram_hs00 import serialise_hs00, deserialise_hs00
+from streaming_data_types import SERIALISERS, DESERIALISERS
 
 
 class TestSerialisationHs00:
@@ -284,3 +285,7 @@ class TestSerialisationHs00:
         assert (
             hist["last_metadata_timestamp"] == original_hist["last_metadata_timestamp"]
         )
+
+    def test_schema_type_is_in_global_serialisers_list(self):
+        assert "hs00" in SERIALISERS
+        assert "hs00" in DESERIALISERS

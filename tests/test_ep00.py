@@ -4,6 +4,7 @@ from streaming_data_types.epics_connection_info_ep00 import (
     serialise_ep00,
     deserialise_ep00,
 )
+from streaming_data_types import SERIALISERS, DESERIALISERS
 
 
 class TestSerialisationEp00:
@@ -32,3 +33,7 @@ class TestSerialisationEp00:
 
         with pytest.raises(RuntimeError):
             deserialise_ep00(buf)
+
+    def test_schema_type_is_in_global_serialisers_list(self):
+        assert "ep00" in SERIALISERS
+        assert "ep00" in DESERIALISERS

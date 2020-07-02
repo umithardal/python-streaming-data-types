@@ -1,6 +1,7 @@
 import pytest
 import numpy as np
 from streaming_data_types.timestamps_tdct import serialise_tdct, deserialise_tdct
+from streaming_data_types import SERIALISERS, DESERIALISERS
 
 
 class TestSerialisationTdct:
@@ -24,10 +25,7 @@ class TestSerialisationTdct:
         )
 
     def test_serialises_and_deserialises_tdct_message_with_array_of_timestamps(self):
-        original_entry = {
-            "name": "some_name",
-            "timestamps": np.array([0, 1, 2, 3, 4]),
-        }
+        original_entry = {"name": "some_name", "timestamps": np.array([0, 1, 2, 3, 4])}
 
         buf = serialise_tdct(**self.original_entry)
         deserialised_tuple = deserialise_tdct(buf)
@@ -46,3 +44,7 @@ class TestSerialisationTdct:
 
         with pytest.raises(RuntimeError):
             deserialise_tdct(buf)
+
+    def test_schema_type_is_in_global_serialisers_list(self):
+        assert "tdct" in SERIALISERS
+        assert "tdct" in DESERIALISERS
