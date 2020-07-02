@@ -62,7 +62,7 @@ twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
 The new module can then be installed from test.pypi.org like so:
 ```
-pip uninstall ess_streaming_data_types
+pip uninstall ess_streaming_data_types    # Remove old version if present
 pip install -i https://test.pypi.org/simple/ ess-streaming-data-types
 ```
 Unfortunately, flatbuffers is not on test.pypi.org so the following error may occur:
