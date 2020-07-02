@@ -1,22 +1,22 @@
 import pytest
 from streaming_data_types.status_x5f2 import serialise_x5f2, deserialise_x5f2
+from streaming_data_types import SERIALISERS, DESERIALISERS
 
 
 class TestEncoder(object):
-
     def test_serialises_and_deserialises_x5f2_message_correctly(self):
         """
         Round-trip to check what we serialise is what we get back.
         """
 
         original_entry = {
-            "software_name" : "nicos/test",
-            "software_version" : "1.0.0",
-            "service_id" : "1a2b3c",
-            "host_name" : "localhost",
-            "process_id" : 1234,
+            "software_name": "nicos/test",
+            "software_version": "1.0.0",
+            "service_id": "1a2b3c",
+            "host_name": "localhost",
+            "process_id": 1234,
             "update_interval": 0,
-            "status_json" : '{"content" : "log_or_status_message"}',
+            "status_json": '{"content" : "log_or_status_message"}',
         }
 
         buf = serialise_x5f2(**original_entry)
@@ -32,13 +32,13 @@ class TestEncoder(object):
 
     def test_if_buffer_has_wrong_id_then_throws(self):
         original_entry = {
-            "software_name" : "nicos/test",
-            "software_version" : "1.0.0",
-            "service_id" : "1a2b3c",
-            "host_name" : "localhost",
-            "process_id" : 1234,
+            "software_name": "nicos/test",
+            "software_version": "1.0.0",
+            "service_id": "1a2b3c",
+            "host_name": "localhost",
+            "process_id": 1234,
             "update_interval": 0,
-            "status_json" : '{"content" : "log_or_status_message"}',
+            "status_json": '{"content" : "log_or_status_message"}',
         }
 
         buf = serialise_x5f2(**original_entry)
@@ -49,3 +49,7 @@ class TestEncoder(object):
 
         with pytest.raises(RuntimeError):
             deserialise_x5f2(buf)
+
+    def test_schema_type_is_in_global_serialisers_list(self):
+        assert "x5f2" in SERIALISERS
+        assert "x5f2" in DESERIALISERS

@@ -60,8 +60,9 @@ Push to test.pypi.org for testing:
 twine upload --repository-url https://test.pypi.org/legacy/ dist/*  
 ```
 
-The module can then be installed from test.pypi.org like so:
+The new module can then be installed from test.pypi.org like so:
 ```
+pip uninstall ess_streaming_data_types    # Remove old version if present
 pip install -i https://test.pypi.org/simple/ ess-streaming-data-types
 ```
 Unfortunately, flatbuffers is not on test.pypi.org so the following error may occur:
@@ -69,6 +70,13 @@ Unfortunately, flatbuffers is not on test.pypi.org so the following error may oc
 ERROR: Could not find a version that satisfies the requirement flatbuffers
 ```
 The workaround is install flatbuffers manually first using `pip install flatbuffers` and then rerun the previous command.
+
+Test the module using the existing test-suite (from project root):
+```
+rm -rf streaming_data_types    # Rename the local source directory
+pytest    # The tests will be run against the pip installed module
+git reset --hard origin/master    # Put everything back to before
+```
 
 After testing installing from test.pypi.org works, push to PyPI:
 ```

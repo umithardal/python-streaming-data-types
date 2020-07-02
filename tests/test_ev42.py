@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 from streaming_data_types.eventdata_ev42 import serialise_ev42, deserialise_ev42
+from streaming_data_types import SERIALISERS, DESERIALISERS
 
 
 class TestSerialisationEv42:
@@ -91,3 +92,7 @@ class TestSerialisationEv42:
 
         with pytest.raises(RuntimeError):
             deserialise_ev42(buf)
+
+    def test_schema_type_is_in_global_serialisers_list(self):
+        assert "ev42" in SERIALISERS
+        assert "ev42" in DESERIALISERS

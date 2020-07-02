@@ -3,6 +3,7 @@ import numpy as np
 from streaming_data_types.logdata_f142 import serialise_f142, deserialise_f142
 from streaming_data_types.fbschemas.logdata_f142.AlarmSeverity import AlarmSeverity
 from streaming_data_types.fbschemas.logdata_f142.AlarmStatus import AlarmStatus
+from streaming_data_types import SERIALISERS, DESERIALISERS
 
 
 class TestSerialisationf142:
@@ -175,3 +176,7 @@ class TestSerialisationf142:
 
         with pytest.raises(RuntimeError):
             deserialise_f142(buf)
+
+    def test_schema_type_is_in_global_serialisers_list(self):
+        assert "f142" in SERIALISERS
+        assert "f142" in DESERIALISERS

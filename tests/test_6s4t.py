@@ -1,5 +1,6 @@
 import pytest
 from streaming_data_types.run_stop_6s4t import serialise_6s4t, deserialise_6s4t
+from streaming_data_types import SERIALISERS, DESERIALISERS
 
 
 class TestSerialisation6s4t:
@@ -28,3 +29,7 @@ class TestSerialisation6s4t:
 
         with pytest.raises(RuntimeError):
             deserialise_6s4t(buf)
+
+    def test_schema_type_is_in_global_serialisers_list(self):
+        assert "6s4t" in SERIALISERS
+        assert "6s4t" in DESERIALISERS
