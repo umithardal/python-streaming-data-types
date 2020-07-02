@@ -5,6 +5,11 @@ from streaming_data_types.nicos_cache_ns10 import deserialise_ns10, serialise_ns
 from streaming_data_types.run_start_pl72 import deserialise_pl72, serialise_pl72
 from streaming_data_types.run_stop_6s4t import deserialise_6s4t, serialise_6s4t
 from streaming_data_types.status_x5f2 import deserialise_x5f2, serialise_x5f2
+from streaming_data_types.epics_connection_info_ep00 import (
+    deserialise_ep00,
+    serialise_ep00,
+)
+from streaming_data_types.timestamps_tdct import deserialise_tdct, serialise_tdct
 
 
 SERIALISERS = {
@@ -15,6 +20,8 @@ SERIALISERS = {
     "pl72": serialise_pl72,
     "6s4t": serialise_6s4t,
     "x5f2": serialise_x5f2,
+    "ep00": serialise_ep00,
+    "tdct": serialise_tdct,
 }
 
 
@@ -26,4 +33,6 @@ DESERIALISERS = {
     "pl72": deserialise_pl72,
     "6s4t": deserialise_6s4t,
     "x5f2": deserialise_x5f2,
+    "ep00": deserialise_ep00,
+    "tdct": deserialise_tdct,
 }
