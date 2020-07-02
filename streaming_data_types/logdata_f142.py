@@ -158,7 +158,7 @@ def _complete_buffer(
     timestamp_unix_ns: int,
     alarm_status: Union[int, None] = None,
     alarm_severity: Union[int, None] = None,
-) -> bytes:
+) -> bytearray:
     LogData.LogDataAddTimestamp(builder, timestamp_unix_ns)
 
     if alarm_status is not None:
@@ -171,7 +171,7 @@ def _complete_buffer(
     builder.Finish(log_msg)
     buff = builder.Output()
     buff[4:8] = FILE_IDENTIFIER
-    return bytes(buff)
+    return buff
 
 
 def _setup_builder(source_name: str) -> Tuple[flatbuffers.Builder, int]:
