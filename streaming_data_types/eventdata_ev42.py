@@ -113,4 +113,4 @@ def serialise_ev42(
     # Generate the output and replace the file_identifier
     buffer = builder.Output()
     buffer[4:8] = FILE_IDENTIFIER
-    return buffer
+    return bytes(buffer)
