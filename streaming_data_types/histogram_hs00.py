@@ -97,27 +97,9 @@ def _serialise_metadata(builder, length, edges, unit, label):
     if isinstance(edges[0], int) or (
         isinstance(edges, numpy.ndarray) and numpy.issubdtype(edges[0], numpy.int64)
     ):
-        bin_type = Array.ArrayULong
-        ArrayULong.ArrayULongStartValueVector(builder, len(edges))
-        # FlatBuffers builds arrays backwards
-        for x in reversed(edges):
-            builder.PrependUint64(x)
-        bins_vector = builder.EndVector(len(edges))
-        # Add the bins
-        ArrayULong.ArrayULongStart(builder)
-        ArrayULong.ArrayULongAddValue(builder, bins_vector)
-        bins_offset = ArrayULong.ArrayULongEnd(builder)
+        bins_offset, bin_type = _serialise_uint64(builder, len(edges), edges)
     else:
-        bin_type = Array.ArrayDouble
-        ArrayDouble.ArrayDoubleStartValueVector(builder, len(edges))
-        # FlatBuffers builds arrays backwards
-        for x in reversed(edges):
-            builder.PrependFloat64(x)
-        bins_vector = builder.EndVector(len(edges))
-        # Add the bins
-        ArrayDouble.ArrayDoubleStart(builder)
-        ArrayDouble.ArrayDoubleAddValue(builder, bins_vector)
-        bins_offset = ArrayDouble.ArrayDoubleEnd(builder)
+        bins_offset, bin_type = _serialise_double(builder, len(edges), edges)
 
     DimensionMetaData.DimensionMetaDataStart(builder)
     DimensionMetaData.DimensionMetaDataAddLength(builder, length)
