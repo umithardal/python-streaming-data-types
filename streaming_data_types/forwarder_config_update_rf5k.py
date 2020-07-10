@@ -6,7 +6,7 @@ from streaming_data_types.fbschemas.forwarder_config_update_rf5k import (
     ConfigUpdate,
     Stream,
 )
-from typing import List
+from typing import List, Union
 
 FILE_IDENTIFIER = b"rf5k"
 
@@ -15,7 +15,7 @@ ConfigurationUpdate = namedtuple("ConfigurationUpdate", ("config_change", "strea
 StreamInfo = namedtuple("StreamInfo", ("channel", "schema", "topic"),)
 
 
-def deserialise_rf5k(buffer):
+def deserialise_rf5k(buffer: Union[bytearray, bytes]) -> ConfigurationUpdate:
     """
     Deserialise FlatBuffer rf5k.
 
@@ -46,7 +46,12 @@ def deserialise_rf5k(buffer):
     return ConfigurationUpdate(config_message.ConfigChange(), streams)
 
 
-def serialise_stream(builder, channel_offset, schema_offset, topic_offset):
+def serialise_stream(
+    builder: flatbuffers.Builder,
+    channel_offset: int,
+    schema_offset: int,
+    topic_offset: int,
+) -> int:
     Stream.StreamStart(builder)
     Stream.StreamAddTopic(builder, topic_offset)
     Stream.StreamAddSchema(builder, schema_offset)
