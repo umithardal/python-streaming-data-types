@@ -15,6 +15,17 @@ from streaming_data_types.utils import check_schema_identifier
 FILE_IDENTIFIER = b"hs00"
 
 
+def _create_array_object_for_type(array_type):
+    if array_type == Array.ArrayUInt:
+        return ArrayUInt.ArrayUInt()
+    elif array_type == Array.ArrayULong:
+        return ArrayULong.ArrayULong()
+    elif array_type == Array.ArrayFloat:
+        return ArrayFloat.ArrayFloat()
+    else:
+        return ArrayDouble.ArrayDouble()
+
+
 def deserialise_hs00(buffer):
     """
     Deserialise flatbuffer hs10 into a histogram.
@@ -27,12 +38,9 @@ def deserialise_hs00(buffer):
 
     dims = []
     for i in range(event_hist.DimMetadataLength()):
-        bins_fb = ArrayDouble.ArrayDouble()
-        if (
-            event_hist.DimMetadata(i).BinBoundariesType() == Array.ArrayUInt
-            or event_hist.DimMetadata(i).BinBoundariesType() == Array.ArrayULong
-        ):
-            bins_fb = ArrayULong.ArrayULong()
+        bins_fb = _create_array_object_for_type(
+            event_hist.DimMetadata(i).BinBoundariesType()
+        )
 
         # Get bins
         bins_offset = event_hist.DimMetadata(i).BinBoundaries()
@@ -53,13 +61,7 @@ def deserialise_hs00(buffer):
 
     metadata_timestamp = event_hist.LastMetadataTimestamp()
 
-    data_fb = ArrayDouble.ArrayDouble()
-    if (
-        event_hist.DataType() == Array.ArrayUInt
-        or event_hist.DataType() == Array.ArrayULong
-    ):
-        data_fb = ArrayULong.ArrayULong()
-
+    data_fb = _create_array_object_for_type(event_hist.DataType())
     data_offset = event_hist.Data()
     data_fb.Init(data_offset.Bytes, data_offset.Pos)
     shape = event_hist.CurrentShapeAsNumpy().tolist()
@@ -68,12 +70,7 @@ def deserialise_hs00(buffer):
     # Get the errors
     errors_offset = event_hist.Errors()
     if errors_offset:
-        errors_fb = ArrayDouble.ArrayDouble()
-        if (
-            event_hist.DataType() == Array.ArrayUInt
-            or event_hist.DataType() == Array.ArrayULong
-        ):
-            errors_fb = ArrayULong.ArrayULong()
+        errors_fb = _create_array_object_for_type(event_hist.ErrorsType())
         errors_fb.Init(errors_offset.Bytes, errors_offset.Pos)
         errors = errors_fb.ValueAsNumpy().reshape(shape)
     else:
