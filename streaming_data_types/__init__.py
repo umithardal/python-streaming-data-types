@@ -10,6 +10,10 @@ from streaming_data_types.epics_connection_info_ep00 import (
     serialise_ep00,
 )
 from streaming_data_types.timestamps_tdct import deserialise_tdct, serialise_tdct
+from streaming_data_types.forwarder_config_update_rf5k import (
+    deserialise_rf5k,
+    serialise_rf5k,
+)
 
 
 SERIALISERS = {
@@ -22,6 +26,7 @@ SERIALISERS = {
     "x5f2": serialise_x5f2,
     "ep00": serialise_ep00,
     "tdct": serialise_tdct,
+    "rf5k": serialise_rf5k,
 }
 
 
@@ -35,4 +40,5 @@ DESERIALISERS = {
     "x5f2": deserialise_x5f2,
     "ep00": deserialise_ep00,
     "tdct": deserialise_tdct,
+    "rf5k": deserialise_rf5k,
 }
