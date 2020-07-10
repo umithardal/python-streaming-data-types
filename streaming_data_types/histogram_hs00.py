@@ -173,25 +173,9 @@ def serialise_hs00(histogram):
     flattened_data = numpy.asarray(histogram["data"]).flatten()
 
     if numpy.issubdtype(flattened_data[0], numpy.int64):
-        data_type = Array.ArrayULong
-        ArrayULong.ArrayULongStartValueVector(builder, data_len)
-        # FlatBuffers builds arrays backwards
-        for x in reversed(flattened_data):
-            builder.PrependUint64(x)
-        data_vector = builder.EndVector(data_len)
-        ArrayULong.ArrayULongStart(builder)
-        ArrayULong.ArrayULongAddValue(builder, data_vector)
-        data_offset = ArrayULong.ArrayULongEnd(builder)
+        data_offset, data_type = _serialise_uint64(builder, data_len, flattened_data)
     else:
-        data_type = Array.ArrayDouble
-        ArrayDouble.ArrayDoubleStartValueVector(builder, data_len)
-        # FlatBuffers builds arrays backwards
-        for x in reversed(flattened_data):
-            builder.PrependFloat64(x)
-        data_vector = builder.EndVector(data_len)
-        ArrayDouble.ArrayDoubleStart(builder)
-        ArrayDouble.ArrayDoubleAddValue(builder, data_vector)
-        data_offset = ArrayDouble.ArrayDoubleEnd(builder)
+        data_offset, data_type = _serialise_double(builder, data_len, flattened_data)
 
     errors_offset = None
     if "errors" in histogram:
@@ -201,23 +185,13 @@ def serialise_hs00(histogram):
             flattened_data = numpy.asarray(histogram["errors"]).flatten()
 
         if numpy.issubdtype(flattened_data[0], numpy.int64):
-            error_type = Array.ArrayULong
-            ArrayULong.ArrayULongStartValueVector(builder, data_len)
-            for x in reversed(flattened_data):
-                builder.PrependUint64(x)
-            errors = builder.EndVector(data_len)
-            ArrayULong.ArrayULongStart(builder)
-            ArrayULong.ArrayULongAddValue(builder, errors)
-            errors_offset = ArrayULong.ArrayULongEnd(builder)
+            errors_offset, error_type = _serialise_uint64(
+                builder, data_len, flattened_data
+            )
         else:
-            error_type = Array.ArrayDouble
-            ArrayDouble.ArrayDoubleStartValueVector(builder, data_len)
-            for x in reversed(flattened_data):
-                builder.PrependFloat64(x)
-            errors = builder.EndVector(data_len)
-            ArrayDouble.ArrayDoubleStart(builder)
-            ArrayDouble.ArrayDoubleAddValue(builder, errors)
-            errors_offset = ArrayDouble.ArrayDoubleEnd(builder)
+            errors_offset, error_type = _serialise_double(
+                builder, data_len, flattened_data
+            )
 
     # Build the actual buffer
     EventHistogram.EventHistogramStart(builder)
@@ -244,3 +218,29 @@ def serialise_hs00(histogram):
     buffer = builder.Output()
     buffer[4:8] = FILE_IDENTIFIER
     return bytes(buffer)
+
+
+def _serialise_double(builder, data_len, flattened_data):
+    data_type = Array.ArrayDouble
+    ArrayDouble.ArrayDoubleStartValueVector(builder, data_len)
+    # FlatBuffers builds arrays backwards
+    for x in reversed(flattened_data):
+        builder.PrependFloat64(x)
+    data_vector = builder.EndVector(data_len)
+    ArrayDouble.ArrayDoubleStart(builder)
+    ArrayDouble.ArrayDoubleAddValue(builder, data_vector)
+    data_offset = ArrayDouble.ArrayDoubleEnd(builder)
+    return data_offset, data_type
+
+
+def _serialise_uint64(builder, data_len, flattened_data):
+    data_type = Array.ArrayULong
+    ArrayULong.ArrayULongStartValueVector(builder, data_len)
+    # FlatBuffers builds arrays backwards
+    for x in reversed(flattened_data):
+        builder.PrependUint64(x)
+    data_vector = builder.EndVector(data_len)
+    ArrayULong.ArrayULongStart(builder)
+    ArrayULong.ArrayULongAddValue(builder, data_vector)
+    data_offset = ArrayULong.ArrayULongEnd(builder)
+    return data_offset, data_type
