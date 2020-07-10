@@ -2,7 +2,9 @@ from functools import reduce
 import operator
 import flatbuffers
 import numpy
+import streaming_data_types.fbschemas.histogram_hs00.ArrayFloat as ArrayFloat
 import streaming_data_types.fbschemas.histogram_hs00.ArrayDouble as ArrayDouble
+import streaming_data_types.fbschemas.histogram_hs00.ArrayUInt as ArrayUInt
 import streaming_data_types.fbschemas.histogram_hs00.ArrayULong as ArrayULong
 import streaming_data_types.fbschemas.histogram_hs00.DimensionMetaData as DimensionMetaData
 import streaming_data_types.fbschemas.histogram_hs00.EventHistogram as EventHistogram
@@ -109,6 +111,9 @@ def serialise_hs00(histogram):
     """
     Serialise a histogram as an hs00 FlatBuffers message.
 
+    If arrays are provided as numpy arrays with type np.uint32, np.uint64, np.float32
+    or np.float64 then type is preserved in output buffer.
+
     :param histogram: A dictionary containing the histogram to serialise.
     """
     source_offset = None
@@ -185,10 +190,34 @@ def serialise_hs00(histogram):
 def _serialise_array(builder, data_len, data):
     flattened_data = numpy.asarray(data).flatten()
 
-    if numpy.issubdtype(flattened_data[0], numpy.int64):
+    # Carefully preserve explicitly supported types
+    if numpy.issubdtype(flattened_data.dtype, numpy.uint32):
+        return _serialise_uint32(builder, data_len, flattened_data)
+    elif numpy.issubdtype(flattened_data.dtype, numpy.uint64):
+        return _serialise_uint64(builder, data_len, flattened_data)
+    elif numpy.issubdtype(flattened_data.dtype, numpy.float32):
+        return _serialise_float(builder, data_len, flattened_data)
+    elif numpy.issubdtype(flattened_data.dtype, numpy.float64):
+        return _serialise_double(builder, data_len, flattened_data)
+
+    # Otherwise if it looks like an int then use uint64, or use double as last resort
+    elif numpy.issubdtype(flattened_data.dtype, numpy.int64):
         return _serialise_uint64(builder, data_len, flattened_data)
     else:
         return _serialise_double(builder, data_len, flattened_data)
+
+
+def _serialise_float(builder, data_len, flattened_data):
+    data_type = Array.ArrayFloat
+    ArrayFloat.ArrayFloatStartValueVector(builder, data_len)
+    # FlatBuffers builds arrays backwards
+    for x in reversed(flattened_data):
+        builder.PrependFloat32(x)
+    data_vector = builder.EndVector(data_len)
+    ArrayFloat.ArrayFloatStart(builder)
+    ArrayFloat.ArrayFloatAddValue(builder, data_vector)
+    data_offset = ArrayFloat.ArrayFloatEnd(builder)
+    return data_offset, data_type
 
 
 def _serialise_double(builder, data_len, flattened_data):
@@ -201,6 +230,19 @@ def _serialise_double(builder, data_len, flattened_data):
     ArrayDouble.ArrayDoubleStart(builder)
     ArrayDouble.ArrayDoubleAddValue(builder, data_vector)
     data_offset = ArrayDouble.ArrayDoubleEnd(builder)
+    return data_offset, data_type
+
+
+def _serialise_uint32(builder, data_len, flattened_data):
+    data_type = Array.ArrayUInt
+    ArrayUInt.ArrayUIntStartValueVector(builder, data_len)
+    # FlatBuffers builds arrays backwards
+    for x in reversed(flattened_data):
+        builder.PrependUint32(x)
+    data_vector = builder.EndVector(data_len)
+    ArrayUInt.ArrayUIntStart(builder)
+    ArrayUInt.ArrayUIntAddValue(builder, data_vector)
+    data_offset = ArrayUInt.ArrayUIntEnd(builder)
     return data_offset, data_type
 
 
