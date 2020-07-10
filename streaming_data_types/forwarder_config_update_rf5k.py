@@ -26,10 +26,27 @@ def deserialise_rf5k(buffer):
 
     config_message = ConfigUpdate.ConfigUpdate.GetRootAsConfigUpdate(buffer, 0)
 
-    return ConfigurationUpdate(config_message.ConfigChange(), [])
+    streams = []
+    for i in range(config_message.StreamsLength()):
+        stream_message = config_message.Streams(i)
+        streams.append(
+            StreamInfo(
+                stream_message.Channel().decode("utf-8")
+                if stream_message.Channel()
+                else "",
+                stream_message.Schema().decode("utf-8")
+                if stream_message.Schema()
+                else "",
+                stream_message.Topic().decode("utf-8")
+                if stream_message.Topic()
+                else "",
+            )
+        )
+
+    return ConfigurationUpdate(config_message.ConfigChange(), streams)
 
 
-def serialise_stream(builder, topic_offset, schema_offset, channel_offset):
+def serialise_stream(builder, channel_offset, schema_offset, topic_offset):
     Stream.StreamStart(builder)
     Stream.StreamAddTopic(builder, topic_offset)
     Stream.StreamAddSchema(builder, schema_offset)
