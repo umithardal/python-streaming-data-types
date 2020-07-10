@@ -4,6 +4,26 @@ from streaming_data_types.histogram_hs00 import serialise_hs00, deserialise_hs00
 from streaming_data_types import SERIALISERS, DESERIALISERS
 
 
+def create_test_data_with_type(numpy_type):
+    return {
+        "source": "some_source",
+        "timestamp": 123456,
+        "current_shape": [5],
+        "dim_metadata": [
+            {
+                "length": 5,
+                "unit": "m",
+                "label": "some_label",
+                "bin_boundaries": np.array([0, 1, 2, 3, 4, 5]).astype(numpy_type),
+            }
+        ],
+        "last_metadata_timestamp": 123456,
+        "data": np.array([1, 2, 3, 4, 5]).astype(numpy_type),
+        "errors": np.array([5, 4, 3, 2, 1]).astype(numpy_type),
+        "info": "info_string",
+    }
+
+
 class TestSerialisationHs00:
     def _check_metadata_for_one_dimension(self, data, original_data):
         assert np.array_equal(data["bin_boundaries"], original_data["bin_boundaries"])
@@ -190,27 +210,21 @@ class TestSerialisationHs00:
             hist["last_metadata_timestamp"] == original_hist["last_metadata_timestamp"]
         )
 
-    def test_serialise_and_deserialise_hs00_message_returns_int32_type(self):
-        """
-        Round-trip to check what we serialise is what we get back.
-        """
-        original_hist = {
-            "source": "some_source",
-            "timestamp": 123456,
-            "current_shape": [5],
-            "dim_metadata": [
-                {
-                    "length": 5,
-                    "unit": "m",
-                    "label": "some_label",
-                    "bin_boundaries": np.array([0, 1, 2, 3, 4, 5]).astype(np.int32),
-                }
-            ],
-            "last_metadata_timestamp": 123456,
-            "data": np.array([1, 2, 3, 4, 5]).astype(np.int32),
-            "errors": np.array([5, 4, 3, 2, 1]).astype(np.int32),
-            "info": "info_string",
-        }
+    def test_serialise_and_deserialise_hs00_message_returns_uint32_type(self):
+        original_hist = create_test_data_with_type(np.uint32)
+
+        buf = serialise_hs00(original_hist)
+        hist = deserialise_hs00(buf)
+
+        assert np.issubdtype(
+            hist["dim_metadata"][0]["bin_boundaries"].dtype,
+            original_hist["dim_metadata"][0]["bin_boundaries"].dtype,
+        )
+        assert np.issubdtype(hist["data"].dtype, original_hist["data"].dtype)
+        assert np.issubdtype(hist["errors"].dtype, original_hist["errors"].dtype)
+
+    def test_serialise_and_deserialise_hs00_message_returns_uint64_type(self):
+        original_hist = create_test_data_with_type(np.uint64)
 
         buf = serialise_hs00(original_hist)
         hist = deserialise_hs00(buf)
@@ -223,26 +237,20 @@ class TestSerialisationHs00:
         assert np.issubdtype(hist["errors"].dtype, original_hist["errors"].dtype)
 
     def test_serialise_and_deserialise_hs00_message_returns_float32_type(self):
-        """
-        Round-trip to check what we serialise is what we get back.
-        """
-        original_hist = {
-            "source": "some_source",
-            "timestamp": 123456,
-            "current_shape": [5],
-            "dim_metadata": [
-                {
-                    "length": 5,
-                    "unit": "m",
-                    "label": "some_label",
-                    "bin_boundaries": np.array([0, 1, 2, 3, 4, 5]).astype(np.float32),
-                }
-            ],
-            "last_metadata_timestamp": 123456,
-            "data": np.array([1, 2, 3, 4, 5]).astype(np.float32),
-            "errors": np.array([5, 4, 3, 2, 1]).astype(np.float32),
-            "info": "info_string",
-        }
+        original_hist = create_test_data_with_type(np.float32)
+
+        buf = serialise_hs00(original_hist)
+        hist = deserialise_hs00(buf)
+
+        assert np.issubdtype(
+            hist["dim_metadata"][0]["bin_boundaries"].dtype,
+            original_hist["dim_metadata"][0]["bin_boundaries"].dtype,
+        )
+        assert np.issubdtype(hist["data"].dtype, original_hist["data"].dtype)
+        assert np.issubdtype(hist["errors"].dtype, original_hist["errors"].dtype)
+
+    def test_serialise_and_deserialise_hs00_message_returns_float64_type(self):
+        original_hist = create_test_data_with_type(np.float64)
 
         buf = serialise_hs00(original_hist)
         hist = deserialise_hs00(buf)
