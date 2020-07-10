@@ -94,12 +94,7 @@ def _serialise_metadata(builder, length, edges, unit, label):
     unit_offset = builder.CreateString(unit)
     label_offset = builder.CreateString(label)
 
-    if isinstance(edges[0], int) or (
-        isinstance(edges, numpy.ndarray) and numpy.issubdtype(edges[0], numpy.int64)
-    ):
-        bins_offset, bin_type = _serialise_uint64(builder, len(edges), edges)
-    else:
-        bins_offset, bin_type = _serialise_double(builder, len(edges), edges)
+    bins_offset, bin_type = _serialise_array(builder, len(edges), edges)
 
     DimensionMetaData.DimensionMetaDataStart(builder)
     DimensionMetaData.DimensionMetaDataAddLength(builder, length)
@@ -152,28 +147,13 @@ def serialise_hs00(histogram):
 
     # Build the data
     data_len = reduce(operator.mul, histogram["current_shape"], 1)
-    flattened_data = numpy.asarray(histogram["data"]).flatten()
-
-    if numpy.issubdtype(flattened_data[0], numpy.int64):
-        data_offset, data_type = _serialise_uint64(builder, data_len, flattened_data)
-    else:
-        data_offset, data_type = _serialise_double(builder, data_len, flattened_data)
+    data_offset, data_type = _serialise_array(builder, data_len, histogram["data"])
 
     errors_offset = None
     if "errors" in histogram:
-        if isinstance(histogram["errors"], numpy.ndarray):
-            flattened_data = histogram["errors"].flatten()
-        else:
-            flattened_data = numpy.asarray(histogram["errors"]).flatten()
-
-        if numpy.issubdtype(flattened_data[0], numpy.int64):
-            errors_offset, error_type = _serialise_uint64(
-                builder, data_len, flattened_data
-            )
-        else:
-            errors_offset, error_type = _serialise_double(
-                builder, data_len, flattened_data
-            )
+        errors_offset, error_type = _serialise_array(
+            builder, data_len, histogram["errors"]
+        )
 
     # Build the actual buffer
     EventHistogram.EventHistogramStart(builder)
@@ -200,6 +180,15 @@ def serialise_hs00(histogram):
     buffer = builder.Output()
     buffer[4:8] = FILE_IDENTIFIER
     return bytes(buffer)
+
+
+def _serialise_array(builder, data_len, data):
+    flattened_data = numpy.asarray(data).flatten()
+
+    if numpy.issubdtype(flattened_data[0], numpy.int64):
+        return _serialise_uint64(builder, data_len, flattened_data)
+    else:
+        return _serialise_double(builder, data_len, flattened_data)
 
 
 def _serialise_double(builder, data_len, flattened_data):
