@@ -12,7 +12,7 @@ from streaming_data_types.fbschemas.forwarder_config_update_rf5k.UpdateType impo
 
 
 class TestEncoder(object):
-    def test_serialises_and_deserialises_rf5k_message_correctly(self):
+    def test_serialises_and_deserialises_rf5k_message_with_streams_correctly(self):
         """
         Round-trip to check what we serialise is what we get back.
         """
@@ -29,6 +29,20 @@ class TestEncoder(object):
         assert entry.config_change == original_entry["config_change"]
         assert stream_1 in entry.streams
         assert stream_2 in entry.streams
+
+    def test_serialises_and_deserialises_rf5k_message_without_streams_correctly(self):
+        """
+        Round-trip to check what we serialise is what we get back.
+        """
+        original_entry = {
+            "config_change": UpdateType.REMOVEALL,
+            "streams": [],
+        }
+
+        buf = serialise_rf5k(**original_entry)
+        entry = deserialise_rf5k(buf)
+
+        assert entry.config_change == original_entry["config_change"]
 
     def test_if_buffer_has_wrong_id_then_throws(self):
         original_entry = {"config_change": UpdateType.REMOVEALL, "streams": []}

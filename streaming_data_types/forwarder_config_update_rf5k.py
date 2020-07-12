@@ -1,5 +1,6 @@
 from collections import namedtuple
 import flatbuffers
+from flatbuffers.packer import struct as flatbuffer_struct
 from streaming_data_types.utils import check_schema_identifier
 from streaming_data_types.fbschemas.forwarder_config_update_rf5k import (
     UpdateType,
@@ -28,22 +29,25 @@ def deserialise_rf5k(buffer: Union[bytearray, bytes]) -> ConfigurationUpdate:
     config_message = ConfigUpdate.ConfigUpdate.GetRootAsConfigUpdate(buffer, 0)
 
     streams = []
-    for i in range(config_message.StreamsLength()):
-        stream_message = config_message.Streams(i)
-        streams.append(
-            StreamInfo(
-                stream_message.Channel().decode("utf-8")
-                if stream_message.Channel()
-                else "",
-                stream_message.Schema().decode("utf-8")
-                if stream_message.Schema()
-                else "",
-                stream_message.Topic().decode("utf-8")
-                if stream_message.Topic()
-                else "",
-                stream_message.Protocol(),
+    try:
+        for i in range(config_message.StreamsLength()):
+            stream_message = config_message.Streams(i)
+            streams.append(
+                StreamInfo(
+                    stream_message.Channel().decode("utf-8")
+                    if stream_message.Channel()
+                    else "",
+                    stream_message.Schema().decode("utf-8")
+                    if stream_message.Schema()
+                    else "",
+                    stream_message.Topic().decode("utf-8")
+                    if stream_message.Topic()
+                    else "",
+                    stream_message.Protocol(),
+                )
             )
-        )
+    except flatbuffer_struct.error:
+        pass  # No streams in buffer
 
     return ConfigurationUpdate(config_message.ConfigChange(), streams)
 
