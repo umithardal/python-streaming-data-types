@@ -5,6 +5,7 @@ from streaming_data_types.fbschemas.forwarder_config_update_rf5k import (
     UpdateType,
     ConfigUpdate,
     Stream,
+    Protocol,
 )
 from typing import List, Union
 
@@ -12,7 +13,7 @@ FILE_IDENTIFIER = b"rf5k"
 
 ConfigurationUpdate = namedtuple("ConfigurationUpdate", ("config_change", "streams"),)
 
-StreamInfo = namedtuple("StreamInfo", ("channel", "schema", "topic"),)
+StreamInfo = namedtuple("StreamInfo", ("channel", "schema", "topic", "protocol"),)
 
 
 def deserialise_rf5k(buffer: Union[bytearray, bytes]) -> ConfigurationUpdate:
@@ -40,6 +41,7 @@ def deserialise_rf5k(buffer: Union[bytearray, bytes]) -> ConfigurationUpdate:
                 stream_message.Topic().decode("utf-8")
                 if stream_message.Topic()
                 else "",
+                stream_message.Protocol(),
             )
         )
 
@@ -48,11 +50,13 @@ def deserialise_rf5k(buffer: Union[bytearray, bytes]) -> ConfigurationUpdate:
 
 def serialise_stream(
     builder: flatbuffers.Builder,
+    protocol: Protocol,
     channel_offset: int,
     schema_offset: int,
     topic_offset: int,
 ) -> int:
     Stream.StreamStart(builder)
+    Stream.StreamAddProtocol(builder, protocol)
     Stream.StreamAddTopic(builder, topic_offset)
     Stream.StreamAddSchema(builder, schema_offset)
     Stream.StreamAddChannel(builder, channel_offset)
@@ -81,8 +85,8 @@ def serialise_rf5k(config_change: UpdateType, streams: List[StreamInfo]) -> byte
             for stream in streams
         ]
         stream_offsets = [
-            serialise_stream(builder, *stream_fields)
-            for stream_fields in stream_field_offsets
+            serialise_stream(builder, stream.protocol, *stream_fields)
+            for stream, stream_fields in zip(streams, stream_field_offsets)
         ]
 
         ConfigUpdate.ConfigUpdateStartStreamsVector(builder, len(streams))

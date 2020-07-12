@@ -40,9 +40,18 @@ class Stream(object):
             return self._tab.String(o + self._tab.Pos)
         return None
 
+    # Stream
+    def Protocol(self):
+        o = flatbuffers.number_types.UOffsetTFlags.py_type(self._tab.Offset(10))
+        if o != 0:
+            return self._tab.Get(
+                flatbuffers.number_types.Uint16Flags, o + self._tab.Pos
+            )
+        return 0
+
 
 def StreamStart(builder):
-    builder.StartObject(3)
+    builder.StartObject(4)
 
 
 def StreamAddChannel(builder, channel):
@@ -61,6 +70,10 @@ def StreamAddTopic(builder, topic):
     builder.PrependUOffsetTRelativeSlot(
         2, flatbuffers.number_types.UOffsetTFlags.py_type(topic), 0
     )
+
+
+def StreamAddProtocol(builder, protocol):
+    builder.PrependUint16Slot(3, protocol, 0)
 
 
 def StreamEnd(builder):

@@ -3,6 +3,7 @@ from streaming_data_types.forwarder_config_update_rf5k import (
     serialise_rf5k,
     deserialise_rf5k,
     StreamInfo,
+    Protocol,
 )
 from streaming_data_types import SERIALISERS, DESERIALISERS
 from streaming_data_types.fbschemas.forwarder_config_update_rf5k.UpdateType import (
@@ -15,8 +16,8 @@ class TestEncoder(object):
         """
         Round-trip to check what we serialise is what we get back.
         """
-        stream_1 = StreamInfo("channel1", "f142", "topic1")
-        stream_2 = StreamInfo("channel2", "TdcTime", "topic2")
+        stream_1 = StreamInfo("channel1", "f142", "topic1", Protocol.Protocol.PVA)
+        stream_2 = StreamInfo("channel2", "TdcTime", "topic2", Protocol.Protocol.CA)
         original_entry = {
             "config_change": UpdateType.ADD,
             "streams": [stream_1, stream_2],
