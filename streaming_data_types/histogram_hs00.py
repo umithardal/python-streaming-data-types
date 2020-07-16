@@ -23,7 +23,7 @@ _array_for_type = {
 
 
 def _create_array_object_for_type(array_type):
-    return _array_for_type.get(array_type, default=ArrayDouble.ArrayDouble())
+    return _array_for_type.get(array_type, ArrayDouble.ArrayDouble())
 
 
 def deserialise_hs00(buffer):
