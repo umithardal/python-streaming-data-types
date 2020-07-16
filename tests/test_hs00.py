@@ -4,6 +4,26 @@ from streaming_data_types.histogram_hs00 import serialise_hs00, deserialise_hs00
 from streaming_data_types import SERIALISERS, DESERIALISERS
 
 
+def create_test_data_with_type(numpy_type):
+    return {
+        "source": "some_source",
+        "timestamp": 123456,
+        "current_shape": [5],
+        "dim_metadata": [
+            {
+                "length": 5,
+                "unit": "m",
+                "label": "some_label",
+                "bin_boundaries": np.array([0, 1, 2, 3, 4, 5]).astype(numpy_type),
+            }
+        ],
+        "last_metadata_timestamp": 123456,
+        "data": np.array([1, 2, 3, 4, 5]).astype(numpy_type),
+        "errors": np.array([5, 4, 3, 2, 1]).astype(numpy_type),
+        "info": "info_string",
+    }
+
+
 class TestSerialisationHs00:
     def _check_metadata_for_one_dimension(self, data, original_data):
         assert np.array_equal(data["bin_boundaries"], original_data["bin_boundaries"])
@@ -151,7 +171,7 @@ class TestSerialisationHs00:
             deserialise_hs00(buf)
 
     def test_serialises_and_deserialises_hs00_message_correctly_for_int_array_data(
-        self
+        self,
     ):
         """
         Round-trip to check what we serialise is what we get back.
@@ -190,8 +210,60 @@ class TestSerialisationHs00:
             hist["last_metadata_timestamp"] == original_hist["last_metadata_timestamp"]
         )
 
+    def test_serialise_and_deserialise_hs00_message_returns_uint32_type(self):
+        original_hist = create_test_data_with_type(np.uint32)
+
+        buf = serialise_hs00(original_hist)
+        hist = deserialise_hs00(buf)
+
+        assert np.issubdtype(
+            hist["dim_metadata"][0]["bin_boundaries"].dtype,
+            original_hist["dim_metadata"][0]["bin_boundaries"].dtype,
+        )
+        assert np.issubdtype(hist["data"].dtype, original_hist["data"].dtype)
+        assert np.issubdtype(hist["errors"].dtype, original_hist["errors"].dtype)
+
+    def test_serialise_and_deserialise_hs00_message_returns_uint64_type(self):
+        original_hist = create_test_data_with_type(np.uint64)
+
+        buf = serialise_hs00(original_hist)
+        hist = deserialise_hs00(buf)
+
+        assert np.issubdtype(
+            hist["dim_metadata"][0]["bin_boundaries"].dtype,
+            original_hist["dim_metadata"][0]["bin_boundaries"].dtype,
+        )
+        assert np.issubdtype(hist["data"].dtype, original_hist["data"].dtype)
+        assert np.issubdtype(hist["errors"].dtype, original_hist["errors"].dtype)
+
+    def test_serialise_and_deserialise_hs00_message_returns_float32_type(self):
+        original_hist = create_test_data_with_type(np.float32)
+
+        buf = serialise_hs00(original_hist)
+        hist = deserialise_hs00(buf)
+
+        assert np.issubdtype(
+            hist["dim_metadata"][0]["bin_boundaries"].dtype,
+            original_hist["dim_metadata"][0]["bin_boundaries"].dtype,
+        )
+        assert np.issubdtype(hist["data"].dtype, original_hist["data"].dtype)
+        assert np.issubdtype(hist["errors"].dtype, original_hist["errors"].dtype)
+
+    def test_serialise_and_deserialise_hs00_message_returns_float64_type(self):
+        original_hist = create_test_data_with_type(np.float64)
+
+        buf = serialise_hs00(original_hist)
+        hist = deserialise_hs00(buf)
+
+        assert np.issubdtype(
+            hist["dim_metadata"][0]["bin_boundaries"].dtype,
+            original_hist["dim_metadata"][0]["bin_boundaries"].dtype,
+        )
+        assert np.issubdtype(hist["data"].dtype, original_hist["data"].dtype)
+        assert np.issubdtype(hist["errors"].dtype, original_hist["errors"].dtype)
+
     def test_serialises_and_deserialises_hs00_message_correctly_when_float_input_is_not_ndarray(
-        self
+        self,
     ):
         """
         Round-trip to check what we serialise is what we get back.
@@ -239,7 +311,7 @@ class TestSerialisationHs00:
         )
 
     def test_serialises_and_deserialises_hs00_message_correctly_when_int_input_is_not_ndarray(
-        self
+        self,
     ):
         """
         Round-trip to check what we serialise is what we get back.

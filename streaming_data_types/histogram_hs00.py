@@ -2,7 +2,9 @@ from functools import reduce
 import operator
 import flatbuffers
 import numpy
+import streaming_data_types.fbschemas.histogram_hs00.ArrayFloat as ArrayFloat
 import streaming_data_types.fbschemas.histogram_hs00.ArrayDouble as ArrayDouble
+import streaming_data_types.fbschemas.histogram_hs00.ArrayUInt as ArrayUInt
 import streaming_data_types.fbschemas.histogram_hs00.ArrayULong as ArrayULong
 import streaming_data_types.fbschemas.histogram_hs00.DimensionMetaData as DimensionMetaData
 import streaming_data_types.fbschemas.histogram_hs00.EventHistogram as EventHistogram
@@ -11,6 +13,17 @@ from streaming_data_types.utils import check_schema_identifier
 
 
 FILE_IDENTIFIER = b"hs00"
+
+
+_array_for_type = {
+    Array.ArrayUInt: ArrayUInt.ArrayUInt(),
+    Array.ArrayULong: ArrayULong.ArrayULong(),
+    Array.ArrayFloat: ArrayFloat.ArrayFloat(),
+}
+
+
+def _create_array_object_for_type(array_type):
+    return _array_for_type.get(array_type, ArrayDouble.ArrayDouble())
 
 
 def deserialise_hs00(buffer):
@@ -25,12 +38,9 @@ def deserialise_hs00(buffer):
 
     dims = []
     for i in range(event_hist.DimMetadataLength()):
-        bins_fb = ArrayDouble.ArrayDouble()
-        if (
-            event_hist.DimMetadata(i).BinBoundariesType() == Array.ArrayUInt
-            or event_hist.DimMetadata(i).BinBoundariesType() == Array.ArrayULong
-        ):
-            bins_fb = ArrayULong.ArrayULong()
+        bins_fb = _create_array_object_for_type(
+            event_hist.DimMetadata(i).BinBoundariesType()
+        )
 
         # Get bins
         bins_offset = event_hist.DimMetadata(i).BinBoundaries()
@@ -51,13 +61,7 @@ def deserialise_hs00(buffer):
 
     metadata_timestamp = event_hist.LastMetadataTimestamp()
 
-    data_fb = ArrayDouble.ArrayDouble()
-    if (
-        event_hist.DataType() == Array.ArrayUInt
-        or event_hist.DataType() == Array.ArrayULong
-    ):
-        data_fb = ArrayULong.ArrayULong()
-
+    data_fb = _create_array_object_for_type(event_hist.DataType())
     data_offset = event_hist.Data()
     data_fb.Init(data_offset.Bytes, data_offset.Pos)
     shape = event_hist.CurrentShapeAsNumpy().tolist()
@@ -66,12 +70,7 @@ def deserialise_hs00(buffer):
     # Get the errors
     errors_offset = event_hist.Errors()
     if errors_offset:
-        errors_fb = ArrayDouble.ArrayDouble()
-        if (
-            event_hist.DataType() == Array.ArrayUInt
-            or event_hist.DataType() == Array.ArrayULong
-        ):
-            errors_fb = ArrayULong.ArrayULong()
+        errors_fb = _create_array_object_for_type(event_hist.ErrorsType())
         errors_fb.Init(errors_offset.Bytes, errors_offset.Pos)
         errors = errors_fb.ValueAsNumpy().reshape(shape)
     else:
@@ -94,30 +93,7 @@ def _serialise_metadata(builder, length, edges, unit, label):
     unit_offset = builder.CreateString(unit)
     label_offset = builder.CreateString(label)
 
-    if isinstance(edges[0], int) or (
-        isinstance(edges, numpy.ndarray) and numpy.issubdtype(edges[0], numpy.int64)
-    ):
-        bin_type = Array.ArrayULong
-        ArrayULong.ArrayULongStartValueVector(builder, len(edges))
-        # FlatBuffers builds arrays backwards
-        for x in reversed(edges):
-            builder.PrependUint64(x)
-        bins_vector = builder.EndVector(len(edges))
-        # Add the bins
-        ArrayULong.ArrayULongStart(builder)
-        ArrayULong.ArrayULongAddValue(builder, bins_vector)
-        bins_offset = ArrayULong.ArrayULongEnd(builder)
-    else:
-        bin_type = Array.ArrayDouble
-        ArrayDouble.ArrayDoubleStartValueVector(builder, len(edges))
-        # FlatBuffers builds arrays backwards
-        for x in reversed(edges):
-            builder.PrependFloat64(x)
-        bins_vector = builder.EndVector(len(edges))
-        # Add the bins
-        ArrayDouble.ArrayDoubleStart(builder)
-        ArrayDouble.ArrayDoubleAddValue(builder, bins_vector)
-        bins_offset = ArrayDouble.ArrayDoubleEnd(builder)
+    bins_offset, bin_type = _serialise_array(builder, len(edges), edges)
 
     DimensionMetaData.DimensionMetaDataStart(builder)
     DimensionMetaData.DimensionMetaDataAddLength(builder, length)
@@ -131,6 +107,9 @@ def _serialise_metadata(builder, length, edges, unit, label):
 def serialise_hs00(histogram):
     """
     Serialise a histogram as an hs00 FlatBuffers message.
+
+    If arrays are provided as numpy arrays with type np.uint32, np.uint64, np.float32
+    or np.float64 then type is preserved in output buffer.
 
     :param histogram: A dictionary containing the histogram to serialise.
     """
@@ -170,54 +149,13 @@ def serialise_hs00(histogram):
 
     # Build the data
     data_len = reduce(operator.mul, histogram["current_shape"], 1)
-    flattened_data = numpy.asarray(histogram["data"]).flatten()
-
-    if numpy.issubdtype(flattened_data[0], numpy.int64):
-        data_type = Array.ArrayULong
-        ArrayULong.ArrayULongStartValueVector(builder, data_len)
-        # FlatBuffers builds arrays backwards
-        for x in reversed(flattened_data):
-            builder.PrependUint64(x)
-        data_vector = builder.EndVector(data_len)
-        ArrayULong.ArrayULongStart(builder)
-        ArrayULong.ArrayULongAddValue(builder, data_vector)
-        data_offset = ArrayULong.ArrayULongEnd(builder)
-    else:
-        data_type = Array.ArrayDouble
-        ArrayDouble.ArrayDoubleStartValueVector(builder, data_len)
-        # FlatBuffers builds arrays backwards
-        for x in reversed(flattened_data):
-            builder.PrependFloat64(x)
-        data_vector = builder.EndVector(data_len)
-        ArrayDouble.ArrayDoubleStart(builder)
-        ArrayDouble.ArrayDoubleAddValue(builder, data_vector)
-        data_offset = ArrayDouble.ArrayDoubleEnd(builder)
+    data_offset, data_type = _serialise_array(builder, data_len, histogram["data"])
 
     errors_offset = None
     if "errors" in histogram:
-        if isinstance(histogram["errors"], numpy.ndarray):
-            flattened_data = histogram["errors"].flatten()
-        else:
-            flattened_data = numpy.asarray(histogram["errors"]).flatten()
-
-        if numpy.issubdtype(flattened_data[0], numpy.int64):
-            error_type = Array.ArrayULong
-            ArrayULong.ArrayULongStartValueVector(builder, data_len)
-            for x in reversed(flattened_data):
-                builder.PrependUint64(x)
-            errors = builder.EndVector(data_len)
-            ArrayULong.ArrayULongStart(builder)
-            ArrayULong.ArrayULongAddValue(builder, errors)
-            errors_offset = ArrayULong.ArrayULongEnd(builder)
-        else:
-            error_type = Array.ArrayDouble
-            ArrayDouble.ArrayDoubleStartValueVector(builder, data_len)
-            for x in reversed(flattened_data):
-                builder.PrependFloat64(x)
-            errors = builder.EndVector(data_len)
-            ArrayDouble.ArrayDoubleStart(builder)
-            ArrayDouble.ArrayDoubleAddValue(builder, errors)
-            errors_offset = ArrayDouble.ArrayDoubleEnd(builder)
+        errors_offset, error_type = _serialise_array(
+            builder, data_len, histogram["errors"]
+        )
 
     # Build the actual buffer
     EventHistogram.EventHistogramStart(builder)
@@ -244,3 +182,75 @@ def serialise_hs00(histogram):
     buffer = builder.Output()
     buffer[4:8] = FILE_IDENTIFIER
     return bytes(buffer)
+
+
+def _serialise_array(builder, data_len, data):
+    flattened_data = numpy.asarray(data).flatten()
+
+    # Carefully preserve explicitly supported types
+    if numpy.issubdtype(flattened_data.dtype, numpy.uint32):
+        return _serialise_uint32(builder, data_len, flattened_data)
+    if numpy.issubdtype(flattened_data.dtype, numpy.uint64):
+        return _serialise_uint64(builder, data_len, flattened_data)
+    if numpy.issubdtype(flattened_data.dtype, numpy.float32):
+        return _serialise_float(builder, data_len, flattened_data)
+    if numpy.issubdtype(flattened_data.dtype, numpy.float64):
+        return _serialise_double(builder, data_len, flattened_data)
+
+    # Otherwise if it looks like an int then use uint64, or use double as last resort
+    if numpy.issubdtype(flattened_data.dtype, numpy.int64):
+        return _serialise_uint64(builder, data_len, flattened_data)
+
+    return _serialise_double(builder, data_len, flattened_data)
+
+
+def _serialise_float(builder, data_len, flattened_data):
+    data_type = Array.ArrayFloat
+    ArrayFloat.ArrayFloatStartValueVector(builder, data_len)
+    # FlatBuffers builds arrays backwards
+    for x in reversed(flattened_data):
+        builder.PrependFloat32(x)
+    data_vector = builder.EndVector(data_len)
+    ArrayFloat.ArrayFloatStart(builder)
+    ArrayFloat.ArrayFloatAddValue(builder, data_vector)
+    data_offset = ArrayFloat.ArrayFloatEnd(builder)
+    return data_offset, data_type
+
+
+def _serialise_double(builder, data_len, flattened_data):
+    data_type = Array.ArrayDouble
+    ArrayDouble.ArrayDoubleStartValueVector(builder, data_len)
+    # FlatBuffers builds arrays backwards
+    for x in reversed(flattened_data):
+        builder.PrependFloat64(x)
+    data_vector = builder.EndVector(data_len)
+    ArrayDouble.ArrayDoubleStart(builder)
+    ArrayDouble.ArrayDoubleAddValue(builder, data_vector)
+    data_offset = ArrayDouble.ArrayDoubleEnd(builder)
+    return data_offset, data_type
+
+
+def _serialise_uint32(builder, data_len, flattened_data):
+    data_type = Array.ArrayUInt
+    ArrayUInt.ArrayUIntStartValueVector(builder, data_len)
+    # FlatBuffers builds arrays backwards
+    for x in reversed(flattened_data):
+        builder.PrependUint32(x)
+    data_vector = builder.EndVector(data_len)
+    ArrayUInt.ArrayUIntStart(builder)
+    ArrayUInt.ArrayUIntAddValue(builder, data_vector)
+    data_offset = ArrayUInt.ArrayUIntEnd(builder)
+    return data_offset, data_type
+
+
+def _serialise_uint64(builder, data_len, flattened_data):
+    data_type = Array.ArrayULong
+    ArrayULong.ArrayULongStartValueVector(builder, data_len)
+    # FlatBuffers builds arrays backwards
+    for x in reversed(flattened_data):
+        builder.PrependUint64(x)
+    data_vector = builder.EndVector(data_len)
+    ArrayULong.ArrayULongStart(builder)
+    ArrayULong.ArrayULongAddValue(builder, data_vector)
+    data_offset = ArrayULong.ArrayULongEnd(builder)
+    return data_offset, data_type
