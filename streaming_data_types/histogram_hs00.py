@@ -15,15 +15,15 @@ from streaming_data_types.utils import check_schema_identifier
 FILE_IDENTIFIER = b"hs00"
 
 
+_array_for_type = {
+    Array.ArrayUInt: ArrayUInt.ArrayUInt(),
+    Array.ArrayULong: ArrayULong.ArrayULong(),
+    Array.ArrayFloat: ArrayFloat.ArrayFloat(),
+}
+
+
 def _create_array_object_for_type(array_type):
-    if array_type == Array.ArrayUInt:
-        return ArrayUInt.ArrayUInt()
-    elif array_type == Array.ArrayULong:
-        return ArrayULong.ArrayULong()
-    elif array_type == Array.ArrayFloat:
-        return ArrayFloat.ArrayFloat()
-    else:
-        return ArrayDouble.ArrayDouble()
+    return _array_for_type.get(array_type, default=ArrayDouble.ArrayDouble())
 
 
 def deserialise_hs00(buffer):
@@ -190,18 +190,18 @@ def _serialise_array(builder, data_len, data):
     # Carefully preserve explicitly supported types
     if numpy.issubdtype(flattened_data.dtype, numpy.uint32):
         return _serialise_uint32(builder, data_len, flattened_data)
-    elif numpy.issubdtype(flattened_data.dtype, numpy.uint64):
+    if numpy.issubdtype(flattened_data.dtype, numpy.uint64):
         return _serialise_uint64(builder, data_len, flattened_data)
-    elif numpy.issubdtype(flattened_data.dtype, numpy.float32):
+    if numpy.issubdtype(flattened_data.dtype, numpy.float32):
         return _serialise_float(builder, data_len, flattened_data)
-    elif numpy.issubdtype(flattened_data.dtype, numpy.float64):
+    if numpy.issubdtype(flattened_data.dtype, numpy.float64):
         return _serialise_double(builder, data_len, flattened_data)
 
     # Otherwise if it looks like an int then use uint64, or use double as last resort
-    elif numpy.issubdtype(flattened_data.dtype, numpy.int64):
+    if numpy.issubdtype(flattened_data.dtype, numpy.int64):
         return _serialise_uint64(builder, data_len, flattened_data)
-    else:
-        return _serialise_double(builder, data_len, flattened_data)
+
+    return _serialise_double(builder, data_len, flattened_data)
 
 
 def _serialise_float(builder, data_len, flattened_data):
