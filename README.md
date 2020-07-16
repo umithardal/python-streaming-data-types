@@ -12,11 +12,12 @@ https://github.com/ess-dmsc/streaming-data-types
 |ns10|NICOS cache entry schema|Y|
 |pl72|Run start|N|
 |6s4t|Run stop|N|
-|f142|Log Data|Y|
-|ev42|Event Data|Y|
+|f142|Log data|Y|
+|ev42|Event data|Y|
 |x5f2|Status messages|N|
 |tdct|Timestamps|Y|
-|ep00|EPICS Connection Info|Y|
+|ep00|EPICS connection info|Y|
+|rf5k|Forwarder configuration update|Y|
 
 \* whether it passes verification via the C++ FlatBuffers library.
 
